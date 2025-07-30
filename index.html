@@ -523,7 +523,7 @@
                     micButton.textContent = '🎙️';
                     var errorMessage = 'Lỗi không xác định. Vui lòng thử lại.';
                     if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-                        errorMessage = 'Quyền truy cập micro đã bị từ chối. Vui lòng kiểm tra cài đặt của trình duyệt và cấp quyền cho trang này. Trên di động, tính năng này có thể không hoạt động với file offline do chính sách bảo mật.';
+                        errorMessage = 'Quyền truy cập micro đã bị từ chối. Trên iPhone, tính năng này không hoạt động do chính sách bảo mật.';
                     } else if (event.error === 'no-speech') {
                         errorMessage = 'Không nhận diện được giọng nói. Vui lòng thử lại.';
                     }
