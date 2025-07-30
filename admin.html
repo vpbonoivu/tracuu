@@ -3,93 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập Quản trị</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .login-container {
-            background-color: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            text-align: center;
-            width: 100%;
-            max-width: 350px;
-        }
-        h1 {
-            color: #003366;
-            margin-bottom: 20px;
-        }
-        input[type="password"] {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 1em;
-            box-sizing: border-box;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            background-color: #005a9e;
-            color: white;
-            font-size: 1.1em;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #004175;
-        }
-        .error {
-            color: #d9534f;
-            margin-top: 15px;
-            display: none;
-        }
-        .back-link {
-            display: block;
-            margin-top: 20px;
-            color: #555;
-            font-size: 0.9em;
-        }
-    </style>
-</head>
+    <title>Trang Quản trị Dữ liệu</title>
+    <link rel="stylesheet" href="admin-style.css"> </head>
 <body>
-    <div class="login-container">
-        <h1>Đăng nhập Quản lý</h1>
-        <form id="loginForm">
-            <input type="password" id="password" placeholder="Nhập mật khẩu..." required>
-            <button type="submit">Đăng nhập</button>
-            <p id="errorMessage" class="error">Mật khẩu không đúng. Vui lòng thử lại.</p>
-        </form>
-        <a href="index.html" class="back-link">Quay về trang tra cứu</a>
+    <div class="header">
+        <h1>Trang Quản trị Dữ liệu Địa phương</h1>
+        <button id="logout-button">Đăng xuất</button>
     </div>
 
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const password = document.getElementById('password').value;
-            const errorMessage = document.getElementById('errorMessage');
-            
-            const correctPasswordHash = 'YWRtaW4yMDI1'; 
+    <div class="container">
+        <div class="form-container">
+            <h2 id="form-title">Thêm Tỉnh Mới</h2>
+            <form id="province-form">
+                <input type="hidden" id="edit-id">
+                <input type="text" id="tenTinh" placeholder="Tên Tỉnh" required>
+                <textarea id="thongTinChung" placeholder="Thông tin chung"></textarea>
+                <input type="text" id="trungTamHanhChinh" placeholder="Trung tâm hành chính mới">
+                <textarea id="lanhDaoTinh" placeholder="Lãnh đạo Tỉnh/Thành phố"></textarea>
+                <textarea id="lanhDaoSo" placeholder="Lãnh đạo Sở Nội vụ"></textarea>
+                <input type="text" id="chucVu" placeholder="Chức vụ GĐ Sở">
+                <input type="text" id="dauMoi" placeholder="Đầu mối liên hệ Sở">
+                <input type="text" id="ghiChu" placeholder="Ghi chú">
+                <input type="text" id="tenThayThe" placeholder="Tên thay thế (cách nhau bởi dấu phẩy)">
+                <div class="form-buttons">
+                    <button type="submit" id="save-button">Lưu</button>
+                    <button type="button" id="cancel-button">Hủy</button>
+                </div>
+            </form>
+        </div>
 
-            if (btoa(password) === correctPasswordHash) {
-                // Lưu một "token" đơn giản vào sessionStorage để xác thực ở trang quản lý
-                sessionStorage.setItem('auth-token', 'user-is-logged-in');
-                window.location.href = 'manage.html';
-            } else {
-                errorMessage.style.display = 'block';
-            }
-        });
-    </script>
+        <div class="table-container">
+            <h2>Danh sách các Tỉnh/Thành phố</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tên Tỉnh</th>
+                        <th>Trung tâm Hành chính</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="province-table-body">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script type="module" src="admin.js"></script>
 </body>
 </html>

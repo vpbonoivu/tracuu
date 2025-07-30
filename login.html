@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập Quản trị</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f2f5; }
+        .login-container { padding: 40px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; width: 300px; }
+        input { width: 100%; box-sizing: border-box; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; }
+        button { width: 100%; padding: 10px; background-color: #003366; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        #error-message { color: red; margin-top: 10px; min-height: 1.2em; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Đăng nhập Hệ thống</h2>
+        <form id="login-form">
+            <input type="password" id="password" placeholder="Mật khẩu" required>
+            <button type="submit">Đăng nhập</button>
+        </form>
+        <p id="error-message"></p>
+    </div>
+
+    <script>
+        const CORRECT_PASSWORD_HASH = '188209e1a05f534cbbabe055a14ea1b7b1d940033a7647483b04f18d58c0a87a';
+
+        const loginForm = document.getElementById('login-form');
+        const passwordInput = document.getElementById('password');
+        const errorMessage = document.getElementById('error-message');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorMessage.textContent = '';
+            
+            const enteredPassword = passwordInput.value;
+            const enteredPasswordHash = await hashPassword(enteredPassword);
+
+            if (enteredPasswordHash === CORRECT_PASSWORD_HASH) {
+                // Mật khẩu đúng, lưu "vé thông hành" và chuyển trang
+                sessionStorage.setItem('isAdminLoggedIn', 'true');
+                window.location.href = 'admin.html';
+            } else {
+                // Mật khẩu sai
+                errorMessage.textContent = 'Mật khẩu không chính xác.';
+            }
+        });
+
+        // Hàm hash mật khẩu (giống hàm đã dùng trong Console)
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex;
+        }
+    </script>
+</body>
+</html>

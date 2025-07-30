@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Tra cứu thông tin liên hệ địa phương (2025)</title>
-    
+
     <meta property="og:title" content="Tra cứu Thông tin Liên hệ - Dữ liệu 2025">
-    <meta property="og:description" content="Công cụ tra cứu thông tin liên hệ 34 địa phương sau sáp nhập. Hoạt động offline.">
+    <meta property="og:description"
+        content="Công cụ tra cứu thông tin liên hệ 34 địa phương sau sáp nhập. Hoạt động offline.">
     <meta property="og:type" content="website">
 
     <style>
@@ -44,10 +46,10 @@
             background-color: var(--card-bg);
             border-bottom: 1px solid var(--border-color);
         }
-        
+
         .header h2 {
             margin: 3px 0;
-            font-size: 0.9em; 
+            font-size: 0.9em;
             color: var(--primary-color);
             font-weight: bold;
             text-transform: uppercase;
@@ -84,7 +86,7 @@
             box-sizing: border-box;
             -webkit-appearance: none;
         }
-        
+
         #micButton {
             padding: 10px 14px;
             font-size: 1.2em;
@@ -96,14 +98,23 @@
             flex-shrink: 0;
             line-height: 1;
         }
+
         #micButton.is-listening {
             animation: pulse 1.5s infinite;
         }
 
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(217, 83, 79, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(217, 83, 79, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(217, 83, 79, 0); }
+            0% {
+                box-shadow: 0 0 0 0 rgba(217, 83, 79, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(217, 83, 79, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(217, 83, 79, 0);
+            }
         }
 
         #searchButton {
@@ -119,18 +130,20 @@
             flex-shrink: 0;
             -webkit-appearance: none;
         }
-        
+
         @media (max-width: 480px) {
             #searchButton {
                 width: 100%;
-                order: 3; 
+                order: 3;
             }
+
             #provinceInput {
                 min-width: calc(100% - 70px);
             }
         }
 
-        #searchButton:hover, #searchButton:active {
+        #searchButton:hover,
+        #searchButton:active {
             background-color: #0056b3;
         }
 
@@ -139,7 +152,7 @@
             border-top: 3px solid var(--primary-color);
             padding-top: 20px;
         }
-        
+
         #resultTenTinh {
             text-align: center;
             font-size: 1.8em;
@@ -166,24 +179,26 @@
             gap: 8px;
         }
 
-        .result-item p, .result-item div {
+        .result-item p,
+        .result-item div {
             font-size: 1em;
             line-height: 1.7;
             white-space: pre-wrap;
             word-wrap: break-word;
         }
-        
+
         .contact-entry {
             margin-bottom: 12px;
             padding-bottom: 12px;
             border-bottom: 1px dashed var(--border-color);
         }
+
         .contact-entry:last-child {
             border-bottom: none;
             margin-bottom: 0;
             padding-bottom: 0;
         }
-        
+
         .contact-entry p {
             margin: 4px 0;
         }
@@ -192,7 +207,7 @@
             font-style: italic;
             color: #888;
         }
-        
+
         #message {
             text-align: center;
             font-size: 1.1em;
@@ -200,9 +215,20 @@
             border-radius: 8px;
             line-height: 1.5;
         }
-        .info-message { background-color: #e7f3fe; color: #0c5460; }
-        .error-message { background-color: #f8d7da; color: #721c24; }
-        .hidden { display: none; }
+
+        .info-message {
+            background-color: #e7f3fe;
+            color: #0c5460;
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .hidden {
+            display: none;
+        }
 
         footer {
             text-align: center;
@@ -214,6 +240,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <div class="container">
@@ -230,9 +257,9 @@
                 <button id="micButton" title="Nhập bằng giọng nói (cần Internet)">🎙️</button>
                 <button id="searchButton">Tra cứu</button>
             </div>
-            
+
             <div id="message" class="info-message">
-                Vui lòng nhập tên tỉnh/thành phố và nhấn "Tra cứu".<br>Ví dụ: "bắc ninh", "hcm", "đà nẵng"...
+                Đang tải dữ liệu từ máy chủ, vui lòng đợi...
             </div>
 
             <div id="resultsContainer" class="hidden">
@@ -268,282 +295,266 @@
             Copyright © 2025 - Phòng Tổng hợp - Thư ký
         </footer>
     </div>
-    
-    <script>
-        window.onload = function() {
-            const db = [
-                { tenTinh: "An Giang", thongTinChung: "AN GIANG\n(Kiên Giang + An Giang)\nDiện tích: 9,9 nghìn km2\nDân số: 4,952,238 người\nĐơn vị hành chính cấp xã: 102 (gồm 85 xã, 14 phường và 3 đặc khu)", trungTamHanhChinh: "TP. Rạch Giá (Kiên Giang)", lanhDaoTinh: "Ông Nguyễn Tiến Hải\nBí thư Tỉnh ủy An Giang\n\nÔng Hồ Văn Mừng\nChủ tịch UBND tỉnh An Giang", lanhDaoSo: "Nguyễn Như Anh\n(1973)\n0918899160", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Đoàn Bảo Toàn, Phó Chánh Văn phòng Sở, 0939303305", ghiChu: "Giáp biển; Tỉnh có dân số đông nhất sau sáp nhập với hơn 4,9 triệu người" },
-                { tenTinh: "Bắc Ninh", thongTinChung: "BẮC NINH\n(Bắc Ninh + Bắc Giang)\nDiện tích: 4,7 nghìn km2\nDân số: 3,619,433 người\nĐơn vị hành chính cấp xã: 99 (gồm 66 xã, 33 phường)", trungTamHanhChinh: "TP Bắc Giang (Bắc Giang)", lanhDaoTinh: "Ông Nguyễn Văn Gấu\nBí thư Tỉnh ủy Bắc Ninh\n\nÔng Vương Quốc Tuấn\nChủ tịch UBND tỉnh Bắc Ninh", lanhDaoSo: "Vũ Mạnh Hùng\n(1969)\n0982355353", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Nguyễn Tiến Đạt, Chánh Văn phòng Sở, 0912533888", ghiChu: "Là một trong 4 tỉnh sau sáp nhập có số thu ngân sách trên 50.000 tỉ đồng" },
-                { tenTinh: "Cà Mau", thongTinChung: "CÀ MAU\n(Bạc Liêu + Cà Mau)\nDiện tích: 7,9 nghìn km2\nDân số: 2,606,672 người\nĐơn vị hành chính cấp xã: 64 (gồm 55 xã, 09 phường)", trungTamHanhChinh: "TP Cà Mau (Cà Mau)", lanhDaoTinh: "Ông Nguyễn Hồ Hải\nBí thư Tỉnh ủy Cà Mau\n\nÔng Phạm Thành Ngại\nChủ tịch UBND tỉnh Cà Mau", lanhDaoSo: "Trần Hữu Phước\n(1971)\n0919381800", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Đoàn Thanh Thùy, Chánh Văn phòng Sở, 0913692674", ghiChu: "Giáp biển" },
-                { tenTinh: "Cao Bằng", thongTinChung: "CAO BẰNG\nDiện tích: 6,7 nghìn km2\nDân số: 573,119 người\nĐơn vị hành chính cấp xã: 56 (gồm 53 xã, 03 phường)", trungTamHanhChinh: "TP Cao Bằng (Cao Bằng)", lanhDaoTinh: "Ông Quản Minh Cường\nBí thư Tỉnh ủy Cao Bằng\n\nÔng Lê Hải Hòa\nChủ tịch UBND tỉnh Cao Bằng", lanhDaoSo: "Nguyễn Lâm Thị Tú Anh\n(1971)\n0915424739", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Nguyễn Thị Thanh Mai, Chánh Văn phòng Sở, 0912682292", ghiChu: "" },
-                { tenTinh: "Thành phố Cần Thơ", tenThayThe: "Cần Thơ", thongTinChung: "CẦN THƠ\n(Cần Thơ + Sóc Trăng + Hậu Giang)\nDiện tích: 6,4 nghìn km2\nDân số: 4,199,824 người\nĐơn vị hành chính cấp xã: 103 (gồm 65 xã, 30 phường)", trungTamHanhChinh: "Ninh Kiều (Cần Thơ)", lanhDaoTinh: "Ông Đỗ Thanh Bình\nBí thư Thành ủy Cần Thơ\n\nÔng Trần Văn Lâu\nChủ tịch UBND TP Cần Thơ", lanhDaoSo: "Trần Thanh Liêm\n(1970)\n0919129723", chucVu: "Quyền Giám đốc Sở Nội vụ", dauMoi: "Trương Hoài Phụng, Phó Trưởng phòng TCCB, 0913770599", ghiChu: "Tp trực thuộc TW; giáp biển" },
-                { tenTinh: "Thành phố Đà Nẵng", tenThayThe: "Đà Nẵng, da nang", thongTinChung: "ĐÀ NẴNG\n(Đà Nẵng + Quảng Nam)\nDiện tích: 11,9 nghìn km2\nDân số: 3,065,628 người\nĐơn vị hành chính cấp xã: 94 (gồm 70 xã, 23 phường và 01 đặc khu)", trungTamHanhChinh: "Hải Châu (Đà Nẵng)", lanhDaoTinh: "Ông Nguyễn Văn Quảng\nBí thư Thành ủy Đà Nẵng\n\nÔng Lương Nguyễn Minh Triết\nChủ tịch UBND TP Đà Nẵng", lanhDaoSo: "Phan Văn Bình\n(1981)\n0936832299", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Đ/c Nhung, Chánh Văn phòng Sở, 0905246111", ghiChu: "Tp trực thuộc TW; là TP có diện tích lớn nhất trong 6 TP trực thuộc TW; giáp biển" },
-                { tenTinh: "Đắk Lắk", tenThayThe: "dak lak, dac lac, đắc lắc", thongTinChung: "ĐẮK LẮK\n(Đắk Lắk + Phú Yên)\nDiện tích: 18,1 nghìn km2\nDân số: 3,346,853 người\nĐơn vị hành chính cấp xã: 102 (gồm 88 xã, 14 phường)\n06 xã giữ nguyên không sắp xếp", trungTamHanhChinh: "TP Buôn Ma Thuột (Đắk Lắk)", lanhDaoTinh: "Ông Nguyễn Đình Trung\nBí thư Tỉnh ủy Đắk Lắk\n\nÔng Tạ Anh Tuấn\nChủ tịch UBND tỉnh Đắk Lắk", lanhDaoSo: "Trương Ngọc Tuấn\n(1977)\n0914731189", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Nguyễn Thành Long, Chánh Văn phòng Sở, 0905156616", ghiChu: "Giáp biển" },
-                { tenTinh: "Điện Biên", thongTinChung: "ĐIỆN BIÊN\nDiện tích: 9,5 nghìn km2\nDân số: 673,091 người\nĐơn vị hành chính cấp xã: 45 (gồm 42 xã, 3 phường)", trungTamHanhChinh: "TP Điện Biên Phủ (Điện Biên)", lanhDaoTinh: "Ông Trần Quốc Cường\nBí thư Tỉnh ủy Điện Biên\n\nÔng Lê Thành Đô\nChủ tịch UBND tỉnh Điện Biên", lanhDaoSo: "Nguyễn Tiến Đạt\n(1973)\n0988208869", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Nguyễn Hồng Ngọc, Chánh Văn phòng Sở, 0919252889", ghiChu: "" },
-                { tenTinh: "Đồng Nai", thongTinChung: "ĐỒNG NAI\n(Đồng Nai + Bình Phước)\nDiện tích: 12,7 nghìn km2\nDân số: 4,491,408 người\nĐơn vị hành chính cấp xã: 95 (gồm 72 xã, 23 phường)", trungTamHanhChinh: "TP Biên Hòa (Đồng Nai)", lanhDaoTinh: "Ông Vũ Hồng Văn\nBí thư Tỉnh ủy Đồng Nai\n\nÔng Võ Tấn Đức\nChủ tịch UBND tỉnh Đồng Nai", lanhDaoSo: "Nguyễn Hữu Định\n(1977)\n0913685369", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Nguyễn Hồng Sơn, Chánh Văn phòng Sở, 0986546530", ghiChu: "Là tỉnh đứng đầu thu ngân sách trong các tỉnh; 2024 là hơn 73.000 tỉ đồng, GRDP đạt hơn 609.000 tỉ đồng" },
-                { tenTinh: "Đồng Tháp", thongTinChung: "ĐỒNG THÁP\n(Đồng Tháp + Tiên Giang)\nDiện tích: 5,9 nghìn km2\nDân số: 4,370,046 người\nĐơn vị hành chính cấp xã: 102 (gồm 82 xã, 20 phường)", trungTamHanhChinh: "TP Mỹ Tho (Tiền Giang)", lanhDaoTinh: "Ông Lê Quốc Phong\nBí thư Tỉnh ủy Đồng Tháp\n\nÔng Trần Trí Quang\nChủ tịch UBND tỉnh Đồng Tháp", lanhDaoSo: "Nguyễn Văn Vũ Minh\n(1983)\n0919906264", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Nguyễn Thị Minh Thùy, Trưởng phòng XDCQ, 0933538729", ghiChu: "Giáp biển" },
-                { tenTinh: "Gia Lai", thongTinChung: "GIA LAI\n(Gia Lai + Bình Định)\nDiện tích: 21,6 nghìn km2\nDân số: 3,583,693 người\nĐơn vị hành chính cấp xã: 135 (gồm 110 xã, 25 phường)", trungTamHanhChinh: "TP Quy Nhơn (Bình Định)", lanhDaoTinh: "Ông Hồ Quốc Dũng\nBí thư Tỉnh ủy Gia Lai\n\nÔng Phạm Anh Tuấn\nChủ tịch UBND tỉnh Gia Lai", lanhDaoSo: "Phạm Thị Tố Hải\n(1973)\n0914305779", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Nguyễn Thị Thanh Nhã, Phó Chánh Văn phòng Sở, 0905832736", ghiChu: "Giáp biển" },
-                { tenTinh: "Thành phố Hà Nội", tenThayThe: "Hà Nội, ha noi", thongTinChung: "HÀ NỘI\nDiện tích: 3,4 nghìn km2\nDân số: 8,807,523 người\nĐơn vị hành chính cấp xã: 126 (gồm 75 xã, 51 phường)", trungTamHanhChinh: "Hoàn Kiếm (Hà Nội)", lanhDaoTinh: "Bà Bùi Thị Minh Hoài\nBí thư Thành ủy Hà Nội\n\nÔng Trần Sỹ Thanh\nChủ tịch UBND TP Hà Nội", lanhDaoSo: "Trần Đình Cảnh\n(1974)\n0913514827", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Nguyễn Dương Chung, Chánh Văn phòng Sở", ghiChu: "Tp trực thuộc TW; đứng thứ hai cả nước về thu ngân sách (sau Tp. HCM)" },
-                { tenTinh: "Hà Tĩnh", thongTinChung: "HÀ TĨNH\nDiện tích: 6 nghìn km2\nDân số: 1,622,901 người\nĐơn vị hành chính cấp xã: 69 (gồm 60 xã và 9 phường)\n2 xã giữ nguyên không thực hiện sắp xếp", trungTamHanhChinh: "TP Hà Tĩnh (Hà Tĩnh)", lanhDaoTinh: "Ông Nguyễn Duy Lâm\nBí thư Tỉnh ủy Hà Tĩnh\n\nÔng Võ Trọng Hải\nChủ tịch UBND tỉnh Hà Tĩnh", lanhDaoSo: "Trịnh Văn Ngọc\n(1970)\n0913071314", chucVu: "Phó Giám đốc Sở Nội vụ", dauMoi: "Đoàn Xuân Hoài, Phó Chánh Văn phòng phụ trách, 0949082882", ghiChu: "Giáp biển" },
-                { tenTinh: "Thành phố Hải Phòng", tenThayThe: "Hải Phòng, hai phong", thongTinChung: "HẢI PHÒNG\n(Hải Phòng + Hải Dương)\nDiện tích: 3,2 nghìn km2\nDân số: 4,664,124 người\nĐơn vị hành chính cấp xã: 114 (gồm 67 xã + phường 45 phường và 2 đặc khu)", trungTamHanhChinh: "TP Thủy Nguyên (Hải Phòng)", lanhDaoTinh: "Ông Lê Tiến Châu\nBí thư Thành ủy Hải Phòng\n\nÔng Lê Ngọc Châu\nChủ tịch UBND TP Hải Phòng", lanhDaoSo: "Vũ Tiến Phụng\n(1972)\n0983020039", chucVu: "Phó Giám đốc Sở Nội vụ", dauMoi: "Hoàng Hải Hà, Phó Chánh Văn phòng Sở, 0966699319", ghiChu: "Tp trực thuộc TW; là TP có diện tích nhỏ nhất trong 6 TP trực thuộc TW; quy mô kinh tế lớn thứ hai cả nước (sau Tp.HCM); giáp biển" },
-                { tenTinh: "Thành phố Huế", tenThayThe: "Huế, hue", thongTinChung: "HUẾ\nDiện tích: 4,9 nghìn km2\nDân số: 1,432,986 người\nĐơn vị hành chính cấp xã: 40 (gồm 19 xã, 21 phường)", trungTamHanhChinh: "Phú Xuân (Huế)", lanhDaoTinh: "Ông Lê Trường Lưu\nBí thư Thành ủy Huế\n\nÔng Nguyễn Văn Phương\nChủ tịch UBND TP Huế", lanhDaoSo: "Nguyễn Văn Mạnh\n(1976)\n0914145186", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Trần Quốc Sinh, Chánh Văn phòng Sở, 0912192336", ghiChu: "Tp trực thuộc TW; giáp biển" },
-                { tenTinh: "Hưng Yên", thongTinChung: "HƯNG YÊN\n(Hưng Yên + Thái Bình)\nDiện tích: 2,5 nghìn km2\nDân số: 3,567,943 người\nĐơn vị hành chính cấp xã: 104 (gồm 93 xã + xã 11 phường)", trungTamHanhChinh: "TP Hưng Yên (Hưng Yên)", lanhDaoTinh: "Ông Nguyễn Hữu Nghĩa\nBí thư Tỉnh ủy Hưng Yên\n\nÔng Nguyễn Khắc Thận\nChủ tịch UBND tỉnh Hưng Yên", lanhDaoSo: "Đào Hồng Vận\n(1973)\n0913375507", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Vũ Trường Giang, Chánh Văn phòng Sở, 0949723787", ghiChu: "Giáp biển; là Tỉnh có diện tích nhỏ nhất cả nước sau sáp nhập với 2.515km2; là một trong 4 tỉnh sau sáp nhập có số thu ngân sách trên 50.000 tỉ đồng" },
-                { tenTinh: "Khánh Hòa", thongTinChung: "KHÁNH HÒA\n(Khánh Hòa + Ninh Thuận)\nDiện tích: 8,6 nghìn km2\nDân số: 2,243,554 người\nĐơn vị hành chính cấp xã: 65 (gồm 48 xã, 16 phường và 1 đặc khu)", trungTamHanhChinh: "TP Nha Trang (Khánh Hoà)", lanhDaoTinh: "Ông Nghiêm Xuân Thành\nBí thư Tỉnh ủy Khánh Hòa\n\nÔng Trần Quốc Nam\nChủ tịch UBND tỉnh Khánh Hòa", lanhDaoSo: "Võ Chí Vương\n(1979)\n0905128584", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Đào Thành Cầu, Phó Chánh Văn phòng Sở, 0983160472", ghiChu: "Giáp biển" },
-                { tenTinh: "Lai Châu", thongTinChung: "LAI CHÂU\nDiện tích: 9,1 nghìn km2\nDân số: 512,601 người\nĐơn vị hành chính cấp xã: 38 (gồm 36 xã, 2 phường)", trungTamHanhChinh: "TP Lai Châu (Lai Châu)", lanhDaoTinh: "Bà Giàng Páo Mỷ\nBí thư Tỉnh ủy Lai Châu\n\nÔng Lê Văn Lương\nChủ tịch UBND tỉnh Lai Châu", lanhDaoSo: "Đào Thị Lan Anh\n(1983)\n09168814757", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Vũ Thị Vân Anh, Trưởng phòng Tổ chức biên chế, 0988406487", ghiChu: "Tỉnh có dân số ít nhất với 512.000 người; mật độ dân số thấp, chỉ 56 người/km2" },
-                { tenTinh: "Lạng Sơn", thongTinChung: "LẠNG SƠN\nDiện tích: 8,3 nghìn km2\nDân số: 881,384 người\nĐơn vị hành chính cấp xã: 65 (gồm 61 xã và 4 phường)", trungTamHanhChinh: "TP Lạng Sơn (Lạng Sơn)", lanhDaoTinh: "Ông Hoàng Văn Nghiệm\nBí thư Tỉnh ủy Lạng Sơn\n\nÔng Hồ Tiến Thiệu\nChủ tịch UBND tỉnh Lạng Sơn", lanhDaoSo: "Hoàng Thị Hiền\n(1972)\n0912618443", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Trần Văn Ba, Chánh Văn phòng Sở, 0919191628", ghiChu: "" },
-                { tenTinh: "Lào Cai", thongTinChung: "LÀO CAI\n(Lào Cai + Yên Bái)\nDiện tích: 13,3 nghìn km2\nDân số: 1,778,785 người\nĐơn vị hành chính cấp xã: 99 (gồm 89 xã và 10 phường)", trungTamHanhChinh: "TP Yên Bái (Yên Bái)", lanhDaoTinh: "Ông Trịnh Xuân Trường\nBí thư Tỉnh ủy Lào Cai\n\nÔng Trần Huy Tuấn\nChủ tịch UBND tỉnh Lào Cai", lanhDaoSo: "Nguyễn Văn Trọng\n(1972)\n0888036699", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "1. Trần Kiên, Chánh Văn phòng Sở, 0888122288\n2. Bùi Duy Linh, Trưởng phòng Kế hoạch - Tổng hợp, 0914876567", ghiChu: "" },
-                { tenTinh: "Lâm Đồng", thongTinChung: "LÂM ĐỒNG\n(Lâm Đồng + Bình Thuận + Đắk Nông)\nDiện tích: 24,2 nghìn km2\nDân số: 3,872,999 người\nĐơn vị hành chính cấp xã: 124 (gồm 103 xã, 20 phường, 1 đặc khu)", trungTamHanhChinh: "TP Đà Lạt (Lâm Đồng)", lanhDaoTinh: "Ông Y Thanh Hà Niê K’Đăm\nBí thư Tỉnh ủy Lâm Đồng\n\nÔng Hồ Văn Mười\nChủ tịch UBND tỉnh Lâm Đồng", lanhDaoSo: "Đỗ Văn Chung\n(1978)\n0913883654", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "1. Trần Thanh Thuần, Chánh Văn phòng Sở, 0979897246\n2. Phạm Phi Thăng, TP XDCP, 0947900279", ghiChu: "Giáp biển; là tỉnh có diện tích lớn nhất cả nước, với hơn 24.233km2" },
-                { tenTinh: "Nghệ An", thongTinChung: "NGHỆ AN\nDiện tích: 16,5 nghìn km2\nDân số: 3,831,694 người\nĐơn vị hành chính cấp xã: 130 (gồm 119 xã, 11 phường)", trungTamHanhChinh: "TP Vinh (Nghệ An)", lanhDaoTinh: "Ông Nguyễn Đức Trung\nBí thư Tỉnh ủy Nghệ An\n\nÔng Lê Hồng Vinh\nChủ tịch UBND tỉnh Nghệ An", lanhDaoSo: "Nguyễn Viết Hưng\n(1973)\n0912435653", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Tô Viết Sáu, Chánh Văn phòng Sở, 0913274087", ghiChu: "Giáp biển" },
-                { tenTinh: "Ninh Bình", thongTinChung: "NINH BÌNH\n(Hà Nam + Ninh Bình + Nam Định)\nDiện tích: 3,9 nghìn km2\nDân số: 4,412,264 người\nĐơn vị hành chính cấp xã: 129 (gồm 97 xã và 32 phường)", trungTamHanhChinh: "TP Hoa Lư (Ninh Bình)", lanhDaoTinh: "Ông Trương Quốc Huy\nBí thư Tỉnh ủy Ninh Bình\n\nÔng Phạm Quang Ngọc\nChủ tịch UBND tỉnh Ninh Bình", lanhDaoSo: "Bùi Văn Hoàng\n(1975)\n0912139175", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Vũ Văn Kiên, Chánh Văn phòng Sở, 0888618333", ghiChu: "Giáp biển; là một trong 4 tỉnh sau sáp nhập có số thu ngân sách trên 50.000 tỉ đồng" },
-                { tenTinh: "Phú Thọ", thongTinChung: "PHÚ THỌ\nVĩnh Phúc + Phú Thọ + Hòa Bình\nDiện tích: 9,4 nghìn km2\nDân số: 4,022,638 người\nĐơn vị hành chính cấp xã: 148 (gồm 133 xã, 15 phường)", trungTamHanhChinh: "TP Việt Trì (Phú Thọ)", lanhDaoTinh: "Ông Đặng Xuân Phong\nBí thư Tỉnh ủy Phú Thọ\n\nÔng Trần Duy Đông\nChủ tịch UBND tỉnh Phú Thọ", lanhDaoSo: "Trần Việt Cường\n(1973)\n0816169999", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Đ/c Hòa, Chánh Văn phòng Sở, 0906230123", ghiChu: "Là tỉnh tiếp giáp nhiều tỉnh, thành khác nhất với 7 tỉnh, thành gồm: Hà Nội, Ninh Bình, Thanh Hóa, Sơn La, Lào Cai, Tuyên Quang, Thái Nguyên" },
-                { tenTinh: "Quảng Ngãi", thongTinChung: "QUẢNG NGÃI\n(Kon Tum + Quảng Ngãi)\nDiện tích: 14,8 nghìn km2\nDân số: 2,161,755 người\nĐơn vị hành chính cấp xã: 96 (gồm 81 xã, 9 phường và 1 đặc khu)", trungTamHanhChinh: "TP Quảng Ngãi (Quảng Ngãi)", lanhDaoTinh: "Bà Bùi Thị Quỳnh Vân\nBí thư Tỉnh ủy Quảng Ngãi\n\nÔng Nguyễn Hoàng Giang\nChủ tịch UBND tỉnh Quảng Ngãi", lanhDaoSo: "Tạ Công Dũng\n(1969)\n0914028022", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Nguyễn Hồng Hậu, Chánh Văn phòng Sở, 0938118176", ghiChu: "Giáp biển" },
-                { tenTinh: "Quảng Ninh", thongTinChung: "QUẢNG NINH\nDiện tích: 6,2 nghìn km2\nDân số: 1,497,447 người\nĐơn vị hành chính cấp xã: 54 (gồm 22 xã, 30 phường và 2 đặc khu)", trungTamHanhChinh: "TP Hạ Long (Quảng Ninh)", lanhDaoTinh: "Ông Vũ Đại Thắng\nBí thư Tỉnh ủy Quảng Ninh\n\nÔng Phạm Đức Ấn\nChủ tịch UBND tỉnh Quảng Ninh", lanhDaoSo: "Bùi Thị Bính\n(1971)\n0913021499", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Nguyễn Thị Trang Nhung, Chánh Văn phòng Sở, 0911761686", ghiChu: "Giáp biển; là một trong 4 tỉnh sau sáp nhập có số thu ngân sách trên 50.000 tỉ đồng" },
-                { tenTinh: "Quảng Trị", thongTinChung: "QUẢNG TRỊ\n(Quảng Bình + Quảng Trị)\nDiện tích: 12,7 nghìn km2\nDân số: 1,870,845 người\nĐơn vị hành chính cấp xã: 78 (gồm 69 xã, 8 phường và 1 đặc khu)", trungTamHanhChinh: "TP Đồng Hới (Quảng Bình)", lanhDaoTinh: "Ông Lê Ngọc Quang\nBí thư Tỉnh ủy Quảng Trị\n\nÔng Trần Phong\nChủ tịch UBND tỉnh Quảng Trị", lanhDaoSo: "Lê Thị Thanh\n(1975)\n0988797353", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Lê Thị Linh, Chánh Văn phòng Sở, 0913233779", ghiChu: "Giáp biển" },
-                { tenTinh: "Sơn La", thongTinChung: "SƠN LA\nDiện tích: 14,1 nghìn km2\nDân số: 1,404,587 người\nĐơn vị hành chính cấp xã: 75 (gồm 67 xã, 8 phường)", trungTamHanhChinh: "TP Sơn La (Sơn La)", lanhDaoTinh: "Ông Hoàng Quốc Khánh\nBí thư Tỉnh ủy Sơn La\n\nÔng Nguyễn Đình Việt\nChủ tịch UBND tỉnh Sơn La", lanhDaoSo: "Lương Thị Như Hoa\n(1975)\n0977998886", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "1. Nguyễn Thanh Tịnh, Phó Giám đốc Sở, 0904315850\n2. Lường Thúy An, Phó Chánh Văn phòng phụ trách, 0914867188", ghiChu: "" },
-                { tenTinh: "Tây Ninh", thongTinChung: "TÂY NINH\n(Tây Ninh + Long An)\nDiện tích: 8,5 nghìn km2\nDân số: 3,254,170 người\nĐơn vị hành chính cấp xã: 96 (gồm 82 xã, 14 phường)", trungTamHanhChinh: "TP Tân An (Long An)", lanhDaoTinh: "Ông Nguyễn Văn Quyết\nBí thư Tỉnh ủy Tây Ninh\n\nÔng Nguyễn Văn Út\nChủ tịch UBND tỉnh Tây Ninh", lanhDaoSo: "Phạm Xuân Bách\n(1981)\n0918955475", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "1. Nguyễn Xuân Minh, Chánh Văn phòng Sở, 0967071738\n2. Nguyễn Hoàng Minh, PGĐ, 0918885377", ghiChu: "" },
-                { tenTinh: "Thái Nguyên", thongTinChung: "THÁI NGUYÊN\n(Bắc Kạn + Thái Nguyên)\nDiện tích: 8,4 nghìn km2\nDân số: 1,799,489 người\nĐơn vị hành chính cấp xã: 92 (gồm 77 xã, 15 phường)", trungTamHanhChinh: "TP Thái Nguyên (Thái Nguyên)", lanhDaoTinh: "Ông Trịnh Việt Hùng\nBí thư Tỉnh ủy Thái Nguyên\n\nÔng Phạm Hoàng Sơn\nChủ tịch UBND tỉnh Thái Nguyên", lanhDaoSo: "Nguyễn Quốc Hữu\n(1977)\n0989090007", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Chánh Văn phòng Sở, 0913509360", ghiChu: "" },
-                { tenTinh: "Thanh Hóa", thongTinChung: "THANH HÓA\nDiện tích: 11,1 nghìn km2\nDân số: 4,324,783 người\nĐơn vị hành chính cấp xã: 166 (gồm 147 xã, 19 phường)", trungTamHanhChinh: "TP Thanh Hóa (Thanh Hóa)", lanhDaoTinh: "Ông Nguyễn Doãn Anh\nBí thư Tỉnh ủy Thanh Hoá\n\nÔng Đỗ Minh Tuấn\nChủ tịch UBND tỉnh Thanh Hoá", lanhDaoSo: "Trần Quốc Huy\n(1967)\n0903456018", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Lê Tiến Hải, Chánh Văn phòng Sở, 0787898868", ghiChu: "Giáp biển; là tỉnh đứng thứ hai về thu ngân sách trong các tỉnh, với số liệu năm 2024 là hơn 56.000 tỉ đồng." },
-                { tenTinh: "Thành phố Hồ Chí Minh", tenThayThe: "TPHCM, HCM, Hồ Chí Minh, ho chi minh", thongTinChung: "TP HỒ CHÍ MINH\n(Bà Rịa - Vũng Tàu + Bình Dương + TP Hồ Chí Minh)\nDiện tích: 6,8 nghìn km2\nDân số: 14,002,598 người\nĐơn vị hành chính cấp xã: 168 (gồm 113 phường, 54 xã, 01 đặc khu)", trungTamHanhChinh: "Quận 1 (TP Hồ Chí Minh)", lanhDaoTinh: "Ông Nguyễn Văn Nên\nBí thư Thành ủy TP.HCM\n\nÔng Nguyễn Văn Được\nChủ tịch UBND TP TP.HCM", lanhDaoSo: "Phạm Thị Thanh Hiền\n(1979)\n0983434710", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Nguyễn Hồng Vân, Trưởng phòng", ghiChu: "Tp trực thuộc TW; là TP có diện tích lớn thứ hai trong 6 TP trực thuộc TW; đông dân nhất cả nước với hơn 14 triệu người; quy mô kinh tế lớn nhất cả nước; giáp biển" },
-                { tenTinh: "Tuyên Quang", thongTinChung: "TUYÊN QUANG\n(Tuyên Quang + Hà Giang)\nDiện tích: 13,8 nghìn km2\nDân số: 1,865,270 người\nĐơn vị hành chính cấp xã: 124 (gồm 117 xã, 7 phường)", trungTamHanhChinh: "TP Tuyên Quang (Tuyên Quang)", lanhDaoTinh: "Ông Hầu A Lềnh\nBí thư Tỉnh ủy Tuyên Quang\n\nÔng Phan Huy Ngọc\nChủ tịch UBND tỉnh Tuyên Quang", lanhDaoSo: "Đỗ Anh Tuấn\n(1977)\n0983545126", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "1. Lê Văn Đạt, Phó Giám đốc Sở, 0949099388\n2. Lê Quốc Huân, Chánh Văn phòng Sở, 0987105312", ghiChu: "" },
-                { tenTinh: "Vĩnh Long", thongTinChung: "VĨNH LONG\n(Bến Tre + Vĩnh Long + Trà Vinh)\nDiện tích: 6,3 nghìn km2\nDân số: 4,257,581 người\nĐơn vị hành chính cấp xã: 124 (gồm 19 phường, 105 xã)", trungTamHanhChinh: "TP Vĩnh Long (Vĩnh Long)", lanhDaoTinh: "Ông Ngô Chí Cường\nBí thư Tỉnh ủy Vĩnh Long\n\nÔng Lữ Quang Ngời\nChủ tịch UBND tỉnh Vĩnh Long", lanhDaoSo: "Nguyễn Thị Ngọc Giàu\n(1984)\n0919978225", chucVu: "Giám đốc Sở Nội vụ", dauMoi: "Nguyễn Văn Châu, Chánh Văn phòng Sở, 0919104033", ghiChu: "Giáp biển" },
-            ];
-            
-            const provinceInput = document.getElementById('provinceInput');
-            const searchButton = document.getElementById('searchButton');
-            const resultsContainer = document.getElementById('resultsContainer');
-            const messageDiv = document.getElementById('message');
-            
-            const resultTenTinh = document.getElementById('resultTenTinh');
-            const resultThongTinChung = document.getElementById('resultThongTinChung');
-            const resultTrungTamHC = document.getElementById('resultTrungTamHC');
-            const resultLanhDaoTinh = document.getElementById('resultLanhDaoTinh');
-            const resultLanhDaoSo = document.getElementById('resultLanhDaoSo');
-            const resultDauMoi = document.getElementById('resultDauMoi');
-            const resultGhiChu = document.getElementById('resultGhiChu');
-            
-            const infoChungItem = document.getElementById('infoChungItem');
-            const trungTamHCItem = document.getElementById('trungTamHCItem');
-            const lanhDaoTinhItem = document.getElementById('lanhDaoTinhItem');
-            const ghiChuItem = document.getElementById('ghiChuItem');
-            const micButton = document.getElementById('micButton');
 
-            function normalizeText(str) {
-                if (!str) return '';
-                return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase().replace(/thanh pho |tp /g, "").trim();
-            }
-            
-            function formatMultiLine(text, icon) {
-                if (!text || !text.trim()) {
-                    return '<p class="no-info">Chưa có thông tin</p>';
-                }
+    <script type="module">
+        // Bước 1: Import các hàm cần thiết từ Firebase SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
 
-                var defaultIcon = '👤';
-                var finalIcon = icon || defaultIcon;
-                var lines = text.split('\n');
-                var htmlResult = '';
-
-                for (var i = 0; i < lines.length; i++) {
-                    var line = lines[i].trim();
-                    if (line === '') continue;
-
-                    var phoneMatch = line.match(/(\d[\d\s\.\(\)]{8,}\d)/);
-                    var infoPart = line;
-                    var phonePart = null;
-
-                    if (phoneMatch) {
-                        phonePart = phoneMatch[0].trim();
-                        infoPart = line.replace(phonePart, '').replace(/[,;-]$/, '').trim();
-                    }
-                    
-                    htmlResult += '<div class="contact-entry">';
-                    htmlResult += '<p>' + finalIcon + ' ' + infoPart + '</p>';
-                    if (phonePart) {
-                        var telLink = phonePart.replace(/[\s\.\(\)]/g, '');
-                        htmlResult += '<p>📞 SĐT: <a href="tel:' + telLink + '">' + phonePart + '</a></p>';
-                    }
-                    htmlResult += '</div>';
-                }
-                return htmlResult;
-            }
-
-            function formatLanhDaoTinh(text) {
-                if (!text || !text.trim()) {
-                    return '<p class="no-info">Chưa có thông tin</p>';
-                }
-                var leaderBlocks = text.split('\n\n');
-                var htmlResult = '';
-
-                for (var i = 0; i < leaderBlocks.length; i++) {
-                    var block = leaderBlocks[i].trim();
-                    if (block === '') continue;
-                    var parts = block.split('\n');
-                    var name = parts[0] ? parts[0].trim() : '';
-                    var title = parts[1] ? parts[1].trim() : '';
-                    if (name && title) {
-                        htmlResult += '<div class="contact-entry"><p>👤 ' + name + ' - ' + title + '</p></div>';
-                    }
-                }
-                return htmlResult || '<p class="no-info">Chưa có thông tin</p>';
-            }
-
-            function formatLanhDaoSo(data, chucvu) {
-                if (!data || !data.trim()) {
-                    return '<p class="no-info">Chưa có thông tin</p>';
-                }
-                var lines = data.split('\n');
-                var name = lines[0] ? lines[0].trim() : '';
-                var year = lines[1] ? lines[1].trim() : '';
-                var phone = lines[2] ? lines[2].trim() : '';
-                
-                var htmlResult = '<div class="contact-entry">';
-                if (name) htmlResult += '<p>👤 ' + name + '</p>';
-                if (year) htmlResult += '<p>📅 Năm sinh: ' + year + '</p>';
-                if (phone) {
-                    var telLink = phone.replace(/[\s\.\(\)]/g, '');
-                    htmlResult += '<p>📞 SĐT: <a href="tel:' + telLink + '">' + phone + '</a></p>';
-                }
-                if (chucvu) htmlResult += '<p>💼 Chức vụ: ' + chucvu + '</p>';
-                htmlResult += '</div>';
-                return htmlResult;
-            }
-            
-            function formatThongTinChung(text) {
-                 if (!text || !text.trim()) return '';
-                 var lines = text.split('\n');
-                 var htmlResult = '';
-                 for (var i = 0; i < lines.length; i++) {
-                     var line = lines[i].trim();
-                     if (line.startsWith('(') && line.endsWith(')')) {
-                         htmlResult += '<strong>' + line + '</strong><br>';
-                     } else if (i === 0) {
-                         htmlResult += '<strong>' + line + '</strong><br>';
-                     } else {
-                         htmlResult += line + '<br>';
-                     }
-                 }
-                 return htmlResult;
-            }
-
-            function performSearch() {
-                try {
-                    var query = normalizeText(provinceInput.value);
-                    
-                    if (!query) {
-                        resultsContainer.classList.add('hidden');
-                        messageDiv.classList.remove('hidden');
-                        messageDiv.classList.remove('error-message');
-                        messageDiv.classList.add('info-message');
-                        messageDiv.textContent = 'Vui lòng nhập tên tỉnh/thành phố và nhấn "Tra cứu".';
-                        return;
-                    }
-
-                    var found = null;
-                    for (var i = 0; i < db.length; i++) {
-                        var province = db[i];
-                        var normalizedTenTinh = normalizeText(province.tenTinh);
-                        var normalizedTenThayThe = normalizeText(province.tenThayThe);
-
-                        if (normalizedTenTinh.indexOf(query) !== -1 || (normalizedTenThayThe && normalizedTenThayThe.indexOf(query) !== -1)) {
-                            found = province;
-                            break;
-                        }
-                    }
-
-                    if (found) {
-                        messageDiv.classList.add('hidden');
-                        
-                        var tenHienThi = found.tenTinh;
-                        if (tenHienThi.toLowerCase().indexOf('thành phố') === -1) {
-                            tenHienThi = 'Tỉnh ' + tenHienThi;
-                        }
-                        resultTenTinh.textContent = tenHienThi;
-                        
-                        resultThongTinChung.innerHTML = formatThongTinChung(found.thongTinChung);
-                        resultTrungTamHC.innerHTML = found.trungTamHanhChinh ? found.trungTamHanhChinh : '<p class="no-info">Chưa có thông tin</p>';
-                        resultLanhDaoTinh.innerHTML = formatLanhDaoTinh(found.lanhDaoTinh);
-                        resultLanhDaoSo.innerHTML = formatLanhDaoSo(found.lanhDaoSo, found.chucVu);
-                        resultDauMoi.innerHTML = formatMultiLine(found.dauMoi, '📧');
-                        resultGhiChu.innerHTML = found.ghiChu ? found.ghiChu : '<p class="no-info">Không có ghi chú</p>';
-
-                        if (found.thongTinChung) { infoChungItem.classList.remove('hidden'); } else { infoChungItem.classList.add('hidden'); }
-                        if (found.trungTamHanhChinh) { trungTamHCItem.classList.remove('hidden'); } else { trungTamHCItem.classList.add('hidden'); }
-                        if (found.lanhDaoTinh) { lanhDaoTinhItem.classList.remove('hidden'); } else { lanhDaoTinhItem.classList.add('hidden'); }
-                        if (found.ghiChu) { ghiChuItem.classList.remove('hidden'); } else { ghiChuItem.classList.add('hidden'); }
-                        
-                        resultsContainer.classList.remove('hidden');
-                    } else {
-                        resultsContainer.classList.add('hidden');
-                        messageDiv.classList.remove('hidden');
-                        messageDiv.classList.remove('info-message');
-                        messageDiv.classList.add('error-message');
-                        messageDiv.textContent = 'Không tìm thấy thông tin cho "' + provinceInput.value + '". Vui lòng kiểm tra lại.';
-                    }
-                } catch (e) {
-                    messageDiv.classList.remove('hidden');
-                    messageDiv.classList.add('error-message');
-                    messageDiv.textContent = 'Đã xảy ra lỗi khi tra cứu. Vui lòng thử lại. Chi tiết: ' + e.message;
-                }
-            }
-
-            var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (SpeechRecognition) {
-                var recognition = new SpeechRecognition();
-                recognition.lang = 'vi-VN';
-                recognition.interimResults = false;
-                recognition.maxAlternatives = 1;
-
-                micButton.addEventListener('click', function() {
-                    micButton.classList.add('is-listening');
-                    micButton.textContent = '..';
-                    try {
-                        recognition.start();
-                    } catch (e) {
-                         handleRecognitionError({ error: 'start-failed' });
-                    }
-                });
-
-                recognition.addEventListener('speechend', function() {
-                    recognition.stop();
-                    micButton.classList.remove('is-listening');
-                    micButton.textContent = '🎙️';
-                });
-
-                recognition.addEventListener('result', function(event) {
-                    var transcript = event.results[0][0].transcript;
-                    provinceInput.value = transcript;
-                    setTimeout(performSearch, 100); 
-                });
-                
-                recognition.addEventListener('error', function(event) {
-                     handleRecognitionError(event);
-                });
-                
-                function handleRecognitionError(event) {
-                    micButton.classList.remove('is-listening');
-                    micButton.textContent = '🎙️';
-                    var errorMessage = 'Lỗi không xác định. Vui lòng thử lại.';
-                    if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-                        errorMessage = 'Quyền truy cập micro đã bị từ chối. Trên iPhone, tính năng này không hoạt động do chính sách bảo mật.';
-                    } else if (event.error === 'no-speech') {
-                        errorMessage = 'Không nhận diện được giọng nói. Vui lòng thử lại.';
-                    }
-                    messageDiv.classList.remove('hidden', 'info-message');
-                    messageDiv.classList.add('error-message');
-                    messageDiv.textContent = errorMessage;
-                }
-
-            } else {
-                micButton.style.display = 'none'; 
-            }
-
-            searchButton.addEventListener('click', performSearch);
-            provinceInput.addEventListener('keydown', function(event) {
-                if (event.key === 'Enter' || event.keyCode === 13) {
-                    event.preventDefault();
-                    performSearch();
-                }
-            });
+        // Bước 2: Cấu hình Firebase của bạn
+        const firebaseConfig = {
+            apiKey: "AIzaSyA-1BYFs94_IXw-Hq34dKEjaYGR9ofjwgo",
+            authDomain: "tracuutinhthanh.firebaseapp.com",
+            projectId: "tracuutinhthanh",
+            storageBucket: "tracuutinhthanh.appspot.com",
+            messagingSenderId: "702568826931",
+            appId: "1:702568826931:web:84c3a510867e17a7adfb46",
+            measurementId: "G-YSMS77L1QS"
         };
+
+        // Bước 3: Khởi tạo Firebase và các dịch vụ
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const analytics = getAnalytics(app);
+
+        // Lấy các element từ DOM
+        const provinceInput = document.getElementById('provinceInput');
+        const searchButton = document.getElementById('searchButton');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const messageDiv = document.getElementById('message');
+        const resultTenTinh = document.getElementById('resultTenTinh');
+        const resultThongTinChung = document.getElementById('resultThongTinChung');
+        const resultTrungTamHC = document.getElementById('resultTrungTamHC');
+        const resultLanhDaoTinh = document.getElementById('resultLanhDaoTinh');
+        const resultLanhDaoSo = document.getElementById('resultLanhDaoSo');
+        const resultDauMoi = document.getElementById('resultDauMoi');
+        const resultGhiChu = document.getElementById('resultGhiChu');
+        const infoChungItem = document.getElementById('infoChungItem');
+        const trungTamHCItem = document.getElementById('trungTamHCItem');
+        const lanhDaoTinhItem = document.getElementById('lanhDaoTinhItem');
+        const ghiChuItem = document.getElementById('ghiChuItem');
+        const micButton = document.getElementById('micButton');
+
+        let provinceData = [];
+
+        function setUIState(isLoading, message = '', isError = false) {
+            provinceInput.disabled = isLoading;
+            searchButton.disabled = isLoading;
+            if (message) {
+                messageDiv.textContent = message;
+                messageDiv.className = isError ? 'error-message' : 'info-message';
+                messageDiv.classList.remove('hidden');
+            }
+        }
+
+        async function loadProvinceData() {
+            setUIState(true, 'Đang tải dữ liệu từ máy chủ, vui lòng đợi...');
+            try {
+                const querySnapshot = await getDocs(collection(db, "provinces"));
+                provinceData = querySnapshot.docs.map(doc => doc.data());
+
+                console.log("Đã tải thành công dữ liệu từ Firebase. Số lượng:", provinceData.length);
+
+                if (provinceData.length === 0) {
+                    setUIState(true, 'Không có dữ liệu nào trên máy chủ.', true);
+                } else {
+                    setUIState(false, 'Vui lòng nhập tên tỉnh/thành phố và nhấn "Tra cứu".');
+                }
+            } catch (error) {
+                console.error("Lỗi khi tải dữ liệu từ Firestore: ", error);
+                setUIState(true, 'Lỗi kết nối tới máy chủ. Vui lòng kiểm tra Security Rules và kết nối mạng.', true);
+            }
+        }
+
+        function normalizeText(str) {
+            if (!str) return '';
+            return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase().replace(/thanh pho |tp /g, "").trim();
+        }
+
+        function formatMultiLine(text, icon) {
+            if (!text || !text.trim()) {
+                return '<p class="no-info">Chưa có thông tin</p>';
+            }
+            var defaultIcon = '👤';
+            var finalIcon = icon || defaultIcon;
+            var lines = text.split('\n');
+            var htmlResult = '';
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i].trim();
+                if (line === '') continue;
+                var phoneMatch = line.match(/(\d[\d\s\.\(\)]{8,}\d)/);
+                var infoPart = line;
+                var phonePart = null;
+                if (phoneMatch) {
+                    phonePart = phoneMatch[0].trim();
+                    infoPart = line.replace(phonePart, '').replace(/[,;-]$/, '').trim();
+                }
+                htmlResult += '<div class="contact-entry">';
+                htmlResult += '<p>' + finalIcon + ' ' + infoPart + '</p>';
+                if (phonePart) {
+                    var telLink = phonePart.replace(/[\s\.\(\)]/g, '');
+                    htmlResult += '<p>📞 SĐT: <a href="tel:' + telLink + '">' + phonePart + '</a></p>';
+                }
+                htmlResult += '</div>';
+            }
+            return htmlResult;
+        }
+
+        function formatLanhDaoTinh(text) {
+            if (!text || !text.trim()) {
+                return '<p class="no-info">Chưa có thông tin</p>';
+            }
+            var leaderBlocks = text.split('\n\n');
+            var htmlResult = '';
+            for (var i = 0; i < leaderBlocks.length; i++) {
+                var block = leaderBlocks[i].trim();
+                if (block === '') continue;
+                var parts = block.split('\n');
+                var name = parts[0] ? parts[0].trim() : '';
+                var title = parts[1] ? parts[1].trim() : '';
+                if (name && title) {
+                    htmlResult += '<div class="contact-entry"><p>👤 ' + name + ' - ' + title + '</p></div>';
+                }
+            }
+            return htmlResult || '<p class="no-info">Chưa có thông tin</p>';
+        }
+
+        function formatLanhDaoSo(data, chucvu) {
+            if (!data || !data.trim()) {
+                return '<p class="no-info">Chưa có thông tin</p>';
+            }
+            var lines = data.split('\n');
+            var name = lines[0] ? lines[0].trim() : '';
+            var year = lines[1] ? lines[1].trim() : '';
+            var phone = lines[2] ? lines[2].trim() : '';
+            var htmlResult = '<div class="contact-entry">';
+            if (name) htmlResult += '<p>👤 ' + name + '</p>';
+            if (year) htmlResult += '<p>📅 Năm sinh: ' + year + '</p>';
+            if (phone) {
+                var telLink = phone.replace(/[\s\.\(\)]/g, '');
+                htmlResult += '<p>📞 SĐT: <a href="tel:' + telLink + '">' + phone + '</a></p>';
+            }
+            if (chucvu) htmlResult += '<p>💼 Chức vụ: ' + chucvu + '</p>';
+            htmlResult += '</div>';
+            return htmlResult;
+        }
+
+        function formatThongTinChung(text) {
+            if (!text || !text.trim()) return '';
+            var lines = text.split('\n');
+            var htmlResult = '';
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i].trim();
+                if (line.startsWith('(') && line.endsWith(')')) {
+                    htmlResult += '<strong>' + line + '</strong><br>';
+                } else if (i === 0) {
+                    htmlResult += '<strong>' + line + '</strong><br>';
+                } else {
+                    htmlResult += line + '<br>';
+                }
+            }
+            return htmlResult;
+        }
+
+        function performSearch() {
+            try {
+                var query = normalizeText(provinceInput.value);
+                if (!query) {
+                    resultsContainer.classList.add('hidden');
+                    setUIState(false, 'Vui lòng nhập tên tỉnh/thành phố và nhấn "Tra cứu".');
+                    return;
+                }
+
+                var found = null;
+                for (var i = 0; i < provinceData.length; i++) {
+                    var province = provinceData[i];
+                    var normalizedTenTinh = normalizeText(province.tenTinh);
+                    var normalizedTenThayThe = normalizeText(province.tenThayThe);
+                    if (normalizedTenTinh.indexOf(query) !== -1 || (normalizedTenThayThe && normalizedTenThayThe.indexOf(query) !== -1)) {
+                        found = province;
+                        break;
+                    }
+                }
+
+                if (found) {
+                    messageDiv.classList.add('hidden');
+                    var tenHienThi = found.tenTinh;
+                    if (tenHienThi.toLowerCase().indexOf('thành phố') === -1) {
+                        tenHienThi = 'Tỉnh ' + tenHienThi;
+                    }
+                    resultTenTinh.textContent = tenHienThi;
+                    resultThongTinChung.innerHTML = formatThongTinChung(found.thongTinChung);
+                    resultTrungTamHC.innerHTML = found.trungTamHanhChinh ? found.trungTamHanhChinh : '<p class="no-info">Chưa có thông tin</p>';
+                    resultLanhDaoTinh.innerHTML = formatLanhDaoTinh(found.lanhDaoTinh);
+                    resultLanhDaoSo.innerHTML = formatLanhDaoSo(found.lanhDaoSo, found.chucVu);
+                    resultDauMoi.innerHTML = formatMultiLine(found.dauMoi, '📧');
+                    resultGhiChu.innerHTML = found.ghiChu ? found.ghiChu : '<p class="no-info">Không có ghi chú</p>';
+
+                    if (found.thongTinChung) { infoChungItem.classList.remove('hidden'); } else { infoChungItem.classList.add('hidden'); }
+                    if (found.trungTamHanhChinh) { trungTamHCItem.classList.remove('hidden'); } else { trungTamHCItem.classList.add('hidden'); }
+                    if (found.lanhDaoTinh) { lanhDaoTinhItem.classList.remove('hidden'); } else { lanhDaoTinhItem.classList.add('hidden'); }
+                    if (found.ghiChu) { ghiChuItem.classList.remove('hidden'); } else { ghiChuItem.classList.add('hidden'); }
+                    resultsContainer.classList.remove('hidden');
+                } else {
+                    resultsContainer.classList.add('hidden');
+                    setUIState(false, 'Không tìm thấy thông tin cho "' + provinceInput.value + '". Vui lòng kiểm tra lại.', true);
+                }
+            } catch (e) {
+                setUIState(false, 'Đã xảy ra lỗi khi tra cứu. Vui lòng thử lại. Chi tiết: ' + e.message, true);
+            }
+        }
+
+        var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            var recognition = new SpeechRecognition();
+            recognition.lang = 'vi-VN';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            micButton.addEventListener('click', function () {
+                micButton.classList.add('is-listening');
+                micButton.textContent = '..';
+                try { recognition.start(); } catch (e) { handleRecognitionError({ error: 'start-failed' }); }
+            });
+            recognition.addEventListener('speechend', function () {
+                recognition.stop();
+                micButton.classList.remove('is-listening');
+                micButton.textContent = '🎙️';
+            });
+            recognition.addEventListener('result', function (event) {
+                var transcript = event.results[0][0].transcript;
+                provinceInput.value = transcript;
+                setTimeout(performSearch, 100);
+            });
+            recognition.addEventListener('error', function (event) {
+                handleRecognitionError(event);
+            });
+            function handleRecognitionError(event) {
+                micButton.classList.remove('is-listening');
+                micButton.textContent = '🎙️';
+                var errorMessage = 'Lỗi không xác định.';
+                if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                    errorMessage = 'Quyền truy cập micro đã bị từ chối.';
+                } else if (event.error === 'no-speech') {
+                    errorMessage = 'Không nhận diện được giọng nói.';
+                }
+                setUIState(false, errorMessage, true);
+            }
+        } else {
+            micButton.style.display = 'none';
+        }
+
+        searchButton.addEventListener('click', performSearch);
+        provinceInput.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter' || event.keyCode === 13) {
+                event.preventDefault();
+                performSearch();
+            }
+        });
+
+        loadProvinceData();
     </script>
 </body>
+
 </html>
