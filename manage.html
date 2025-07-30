@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Dữ liệu Địa phương</title>
+    <style>
+        :root {
+            --primary-color: #003366;
+            --secondary-color: #f0f2f5;
+            --text-color: #333;
+            --border-color: #ddd;
+            --accent-color: #d9534f;
+            --success-color: #28a745;
+            --card-bg: #ffffff;
+            --button-bg: #005a9e;
+            --button-hover-bg: #004175;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            overflow: hidden;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: var(--primary-color);
+            margin: 0;
+            font-size: 1.8em;
+        }
+        .search-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        #provinceSelector {
+            flex-grow: 1;
+        }
+        button, input, textarea, select {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        button {
+            border: none;
+            background-color: var(--button-bg);
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: var(--button-hover-bg);
+        }
+        .hidden { display: none; }
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        textarea {
+            width: 100%;
+            min-height: 80px;
+            resize: vertical;
+        }
+        .form-actions, .export-action {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        #deleteButton { background-color: var(--accent-color); }
+        #deleteButton:hover { background-color: #c9302c; }
+        #exportButton { background-color: var(--success-color); font-weight: bold; }
+        #exportButton:hover { background-color: #218838; }
+        #logoutButton { background-color: #6c757d; }
+        #logoutButton:hover { background-color: #5a6268; }
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            font-weight: bold;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚙️ Quản lý Dữ liệu</h1>
+            <button id="logoutButton">Đăng xuất</button>
+        </div>
+        
+        <div id="management-content">
+            <div class="search-area">
+                <select id="provinceSelector">
+                    <option value="">-- Chọn tỉnh/thành để sửa --</option>
+                </select>
+                <button id="addNewButton">Thêm mới</button>
+            </div>
+    
+            <form id="editForm" class="hidden">
+                <label for="editTenTinh">Tên tỉnh (Bắt buộc)</label>
+                <input type="text" id="editTenTinh" style="width: 100%;">
+    
+                <label for="editTenThayThe">Tên thay thế (cách nhau bằng dấu phẩy)</label>
+                <input type="text" id="editTenThayThe" style="width: 100%;">
+    
+                <label for="editThongTinChung">Thông tin chung</label>
+                <textarea id="editThongTinChung"></textarea>
+    
+                <label for="editTrungTamHC">Trung tâm hành chính</label>
+                <input type="text" id="editTrungTamHC" style="width: 100%;">
+    
+                <label for="editLanhDaoTinh">Lãnh đạo Tỉnh/Thành phố</label>
+                <textarea id="editLanhDaoTinh"></textarea>
+    
+                <!-- UPDATED: Label changed and ChucVu field removed -->
+                <label for="editLanhDaoSo">Lãnh đạo Sở Nội vụ (Tên, Chức vụ, SĐT...)</label>
+                <textarea id="editLanhDaoSo"></textarea>
+    
+                <label for="editDauMoi">Đầu mối liên hệ Sở</label>
+                <textarea id="editDauMoi"></textarea>
+    
+                <label for="editGhiChu">Ghi chú</label>
+                <textarea id="editGhiChu"></textarea>
+    
+                <div class="form-actions">
+                    <button type="button" id="saveButton">Lưu thay đổi</button>
+                    <button type="button" id="deleteButton">Xóa Tỉnh</button>
+                </div>
+            </form>
+    
+            <div class="export-action">
+                 <button id="exportButton">✅ Tải về file data.js đã cập nhật</button>
+            </div>
+            <p style="font-size: 0.9em; color: #555; margin-top: 15px;"><strong>Hướng dẫn:</strong> Sau khi chỉnh sửa, nhấn nút trên để tải file <strong>data.js</strong> mới. Sau đó, hãy thay thế file cũ bằng file vừa tải về.</p>
+        </div>
+        <div id="error-container" class="hidden"></div>
+    </div>
+    
+    <script src="data.js"></script>
+    <script>
+        // --- Authentication Check ---
+        if (sessionStorage.getItem('auth-token') !== 'user-is-logged-in') {
+            window.location.href = 'admin.html';
+        }
+
+        window.onload = function() {
+            const managementContent = document.getElementById('management-content');
+            const errorContainer = document.getElementById('error-container');
+
+            if (typeof db === 'undefined') {
+                managementContent.style.display = 'none';
+                errorContainer.classList.remove('hidden');
+                errorContainer.innerHTML = '<p class="error-message"><strong>LỖI TẢI DỮ LIỆU:</strong> Không tìm thấy file <strong>data.js</strong>. Vui lòng kiểm tra lại.</p>';
+                return;
+            }
+
+            // --- Management Functionality ---
+            const provinceSelector = document.getElementById('provinceSelector');
+            const editForm = document.getElementById('editForm');
+            const editTenTinh = document.getElementById('editTenTinh');
+            const editTenThayThe = document.getElementById('editTenThayThe');
+            const editThongTinChung = document.getElementById('editThongTinChung');
+            const editTrungTamHC = document.getElementById('editTrungTamHC');
+            const editLanhDaoTinh = document.getElementById('editLanhDaoTinh');
+            const editLanhDaoSo = document.getElementById('editLanhDaoSo');
+            const editDauMoi = document.getElementById('editDauMoi');
+            const editGhiChu = document.getElementById('editGhiChu');
+            
+            const addNewButton = document.getElementById('addNewButton');
+            const saveButton = document.getElementById('saveButton');
+            const deleteButton = document.getElementById('deleteButton');
+            const exportButton = document.getElementById('exportButton');
+            const logoutButton = document.getElementById('logoutButton');
+            let currentIndex = -1;
+
+            function populateSelector() {
+                db.sort((a, b) => a.tenTinh.localeCompare(b.tenTinh, 'vi'));
+                provinceSelector.innerHTML = '<option value="">-- Chọn tỉnh/thành để sửa --</option>';
+                db.forEach((province, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = province.tenTinh;
+                    provinceSelector.appendChild(option);
+                });
+            }
+
+            function clearForm() {
+                editForm.reset();
+            }
+
+            provinceSelector.addEventListener('change', () => {
+                const selectedIndex = provinceSelector.value;
+                if (selectedIndex === "") {
+                    editForm.classList.add('hidden');
+                    return;
+                }
+                
+                currentIndex = parseInt(selectedIndex, 10);
+                const province = db[currentIndex];
+                editTenTinh.value = province.tenTinh || '';
+                editTenThayThe.value = province.tenThayThe || '';
+                editThongTinChung.value = province.thongTinChung || '';
+                editTrungTamHC.value = province.trungTamHanhChinh || '';
+                editLanhDaoTinh.value = province.lanhDaoTinh || '';
+                editLanhDaoSo.value = province.lanhDaoSo || '';
+                // UPDATED: Removed chucVu field
+                editDauMoi.value = province.dauMoi || '';
+                editGhiChu.value = province.ghiChu || '';
+                
+                editForm.classList.remove('hidden');
+            });
+
+            addNewButton.addEventListener('click', () => {
+                provinceSelector.value = "";
+                currentIndex = -1;
+                clearForm();
+                editForm.classList.remove('hidden');
+                editTenTinh.focus();
+            });
+
+            saveButton.addEventListener('click', () => {
+                if (!editTenTinh.value.trim()) {
+                    alert('Tên tỉnh là bắt buộc!');
+                    return;
+                }
+                const provinceData = {
+                    tenTinh: editTenTinh.value.trim(),
+                    tenThayThe: editTenThayThe.value.trim(),
+                    thongTinChung: editThongTinChung.value.trim(),
+                    trungTamHanhChinh: editTrungTamHC.value.trim(),
+                    lanhDaoTinh: editLanhDaoTinh.value.trim(),
+                    lanhDaoSo: editLanhDaoSo.value.trim(),
+                    // UPDATED: Removed chucVu field
+                    dauMoi: editDauMoi.value.trim(),
+                    ghiChu: editGhiChu.value.trim(),
+                };
+
+                if (currentIndex > -1) {
+                    db[currentIndex] = provinceData;
+                } else {
+                    db.push(provinceData);
+                }
+                
+                alert('Đã lưu thành công! Nhấn nút "Tải về" để xuất file mới.');
+                populateSelector();
+                editForm.classList.add('hidden');
+                clearForm();
+            });
+
+            deleteButton.addEventListener('click', () => {
+                if (currentIndex > -1 && confirm(`Bạn có chắc chắn muốn xóa tỉnh "${db[currentIndex].tenTinh}"?`)) {
+                    db.splice(currentIndex, 1);
+                    alert('Đã xóa thành công! Nhấn nút "Tải về" để xuất file mới.');
+                    populateSelector();
+                    editForm.classList.add('hidden');
+                    clearForm();
+                }
+            });
+
+            exportButton.addEventListener('click', () => {
+                db.sort((a, b) => a.tenTinh.localeCompare(b.tenTinh, 'vi'));
+                const dataStr = `const db = ${JSON.stringify(db, null, 4)};`;
+                const blob = new Blob([dataStr], { type: 'text/javascript;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'data.js';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+
+            logoutButton.addEventListener('click', () => {
+                sessionStorage.removeItem('auth-token');
+                window.location.href = 'admin.html';
+            });
+            
+            populateSelector();
+        };
+    </script>
+</body>
+</html>
