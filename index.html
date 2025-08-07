@@ -230,6 +230,107 @@
             display: none;
         }
 
+        a.details-link {
+            color: var(--accent-color);
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        a.details-link:hover {
+            text-decoration: underline;
+        }
+        
+        /* === CSS CHO POP-UP (MODAL) === */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.6);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 25px 30px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 900px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .close-button {
+            color: #aaa;
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            font-size: 32px;
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        #modal-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        #modal-body {
+            max-height: 65vh;
+            overflow-y: auto;
+            padding-right: 15px; /* Tạo khoảng trống cho thanh cuộn */
+        }
+        
+        .modal-summary {
+            background-color: #e7f3fe;
+            border-left: 4px solid #0c5460;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        /* CSS cho bảng trong pop-up */
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95em;
+        }
+        .details-table th, .details-table td {
+            border: 1px solid var(--border-color);
+            padding: 10px 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+        .details-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        .details-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
         footer {
             text-align: center;
             padding: 20px;
@@ -295,6 +396,18 @@
             Copyright © 2025 - Phòng Tổng hợp - Thư ký
         </footer>
     </div>
+    
+    <!-- === CẤU TRÚC HTML CHO POP-UP (MODAL) === -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content">
+            <span id="closeModalButton" class="close-button">&times;</span>
+            <h2 id="modal-title">Chi tiết Đơn vị Hành chính</h2>
+            <div id="modal-body">
+                <!-- Nội dung chi tiết sẽ được chèn vào đây bằng JavaScript -->
+            </div>
+        </div>
+    </div>
+
 
     <script type="module">
         // Bước 1: Import các hàm cần thiết từ Firebase SDK
@@ -317,6 +430,270 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const analytics = getAnalytics(app);
+        
+        // === DỮ LIỆU CHI TIẾT CÁC TỈNH (CẬP NHẬT TỪ FILE EXCEL) ===
+        // *** ĐÃ SỬA LỖI: CÁC KEY ĐÃ CÓ DẤU CÁCH ĐỂ KHỚP VỚI DỮ LIỆU CHUẨN HÓA ***
+        const provinceDetails = {
+            'an giang': `
+                <div class="modal-summary">
+                    <p><strong>Tổng số ĐVHC cấp xã:</strong> 102 (gồm 85 xã, 14 phường và 3 đặc khu).</p>
+                    <p><strong>Giữ nguyên không sắp xếp (06 xã):</strong> Mỹ Hòa Hưng, Bình Giang, Bình Sơn, Hòn Nghệ, Sơn Hải và Tiên Hải.</p>
+                </div>
+                <table class="details-table">
+                    <thead>
+                        <tr>
+                            <th style="width:5%">STT</th>
+                            <th>Đơn vị hành chính mới</th>
+                            <th>Sắp xếp từ các ĐVHC cấp xã cũ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1</td><td>xã An Phú</td><td>thị trấn An Phú + xã Vĩnh Hội Đông + một phần các xã: Phú Hội, Phước Hưng</td></tr>
+                        <tr><td>2</td><td>xã Vĩnh Hậu</td><td>thị trấn Đa Phước + xã Vĩnh Trường + xã Vĩnh Hậu</td></tr>
+                        <tr><td>3</td><td>xã Nhơn Hội</td><td>xã Nhơn Hội + xã Quốc Thái + xã Phước Hưng + một phần xã Phú Hội</td></tr>
+                        <tr><td>4</td><td>xã Khánh Bình</td><td>thị trấn Long Bình + xã Khánh An + xã Khánh Bình</td></tr>
+                        <tr><td>5</td><td>xã Phú Hữu</td><td>xã Phú Hữu + xã Vĩnh Lộc + một phần xã Phước Hưng</td></tr>
+                        <tr><td>6</td><td>xã Tân An</td><td>xã Tân Thạnh + xã Tân An + xã Long An</td></tr>
+                        <tr><td>7</td><td>xã Châu Phong</td><td>xã Phú Vĩnh + xã Lê Chánh + xã Châu Phong</td></tr>
+                        <tr><td>8</td><td>xã Vĩnh Xương</td><td>xã Phú Lộc + xã Vĩnh Xương + xã Vĩnh Hòa</td></tr>
+                        <tr><td>9</td><td>xã Phú Tân</td><td>thị trấn Phú Mỹ + xã Tân Trung + xã Tân Hòa + xã Phú Hưng</td></tr>
+                        <tr><td>10</td><td>xã Phú An</td><td>xã Phú Thọ + xã Phú Xuân + xã Phú An</td></tr>
+                        <tr><td>11</td><td>xã Bình Thạnh Đông</td><td>xã Hiệp Xương + xã Phú Bình + xã Bình Thạnh Đông</td></tr>
+                        <tr><td>12</td><td>xã Chợ Vàm</td><td>thị trấn Chợ Vàm + xã Phú Thạnh + xã Phú Thành</td></tr>
+                        <tr><td>13</td><td>xã Hòa Lạc</td><td>xã Hòa Lạc + xã Phú Hiệp</td></tr>
+                        <tr><td>14</td><td>xã Phú Lâm</td><td>xã Long Hòa + xã Phú Lâm + xã Phú Long</td></tr>
+                        <tr><td>15</td><td>xã Châu Phú</td><td>thị trấn Cái Dầu + xã Bình Long + xã Bình Phú</td></tr>
+                        <tr><td>16</td><td>xã Mỹ Đức</td><td>xã Khánh Hòa + xã Mỹ Đức</td></tr>
+                        <tr><td>17</td><td>xã Vĩnh Thạnh Trung</td><td>thị trấn Vĩnh Thạnh Trung + xã Mỹ Phú</td></tr>
+                        <tr><td>18</td><td>xã Bình Mỹ</td><td>xã Bình Mỹ + xã Bình Thủy + xã Bình Chánh</td></tr>
+                        <tr><td>19</td><td>xã Thạnh Mỹ Tây</td><td>xã Đào Hữu Cảnh + xã Ô Long Vĩ + xã Thạnh Mỹ Tây</td></tr>
+                        <tr><td>20</td><td>xã An Cư</td><td>xã Văn Giáo + xã Vĩnh Trung + xã An Cư</td></tr>
+                        <tr><td>21</td><td>xã Núi Cấm</td><td>xã Tân Lập + xã An Hảo</td></tr>
+                        <tr><td>22</td><td>xã Ba Chúc</td><td>thị trấn Ba Chúc + xã Lạc Quới + xã Lê Trì</td></tr>
+                        <tr><td>23</td><td>xã Tri Tôn</td><td>thị trấn Tri Tôn + xã Núi Tô + xã Châu Lăng</td></tr>
+                        <tr><td>24</td><td>xã Ô Lâm</td><td>xã An Tức + xã Lương Phi + xã Ô Lâm</td></tr>
+                        <tr><td>25</td><td>xã Cô Tô</td><td>thị trấn Cô Tô + xã Tà Đảnh + xã Tân Tuyến</td></tr>
+                        <tr><td>26</td><td>xã Vĩnh Gia</td><td>xã Vĩnh Gia + xã Vĩnh Phước + xã Lương An Trà</td></tr>
+                        <tr><td>27</td><td>xã An Châu</td><td>thị trấn An Châu + xã Hòa Bình Thạnh + xã Vĩnh Thành</td></tr>
+                        <tr><td>28</td><td>xã Bình Hòa</td><td>xã Bình Thạnh + xã An Hòa + xã Bình Hòa</td></tr>
+                        <tr><td>29</td><td>xã Cần Đăng</td><td>xã Vĩnh Lợi + xã Cần Đăng</td></tr>
+                        <tr><td>30</td><td>xã Vĩnh Hanh</td><td>xã Vĩnh Nhuận + xã Vĩnh Hanh</td></tr>
+                        <tr><td>31</td><td>xã Vĩnh An</td><td>thị trấn Vĩnh Bình + xã Tân Phú + xã Vĩnh An</td></tr>
+                        <tr><td>32</td><td>xã Chợ Mới</td><td>thị trấn Chợ Mới + xã Kiến An + xã Kiến Thành</td></tr>
+                        <tr><td>33</td><td>xã Cù Lao Giêng</td><td>xã Tấn Mỹ + xã Mỹ Hiệp + xã Bình Phước Xuân</td></tr>
+                        <tr><td>34</td><td>xã Hội An</td><td>thị trấn Hội An + xã Hòa Bình + xã Hòa An</td></tr>
+                        <tr><td>35</td><td>xã Long Điền</td><td>thị trấn Mỹ Luông + xã Long Điền A + xã Long Điền B</td></tr>
+                        <tr><td>36</td><td>xã Nhơn Mỹ</td><td>xã Nhơn Mỹ + xã Mỹ Hội Đông + xã Long Giang</td></tr>
+                        <tr><td>37</td><td>xã Long Kiến</td><td>xã Long Kiến + xã An Thạnh Trung + xã Mỹ An</td></tr>
+                        <tr><td>38</td><td>xã Thoại Sơn</td><td>thị trấn Núi Sập + xã Thoại Giang + xã Bình Thành</td></tr>
+                        <tr><td>39</td><td>xã Óc Eo</td><td>thị trấn Óc Eo + xã Vọng Thê + xã Vọng Đông</td></tr>
+                        <tr><td>40</td><td>xã Định Mỹ</td><td>xã Định Thành + xã Định Mỹ + xã Vĩnh Phú</td></tr>
+                        <tr><td>41</td><td>xã Phú Hòa</td><td>thị trấn Phú Hòa + xã Phú Thuận + xã Vĩnh Chánh</td></tr>
+                        <tr><td>42</td><td>xã Vĩnh Trạch</td><td>xã Vĩnh Khánh + xã Vĩnh Trạch</td></tr>
+                        <tr><td>43</td><td>xã Tây Phú</td><td>xã An Bình + xã Tây Phú + xã Mỹ Phú Đông</td></tr>
+                        <tr><td>44</td><td>xã Vĩnh Bình</td><td>xã Vĩnh Bình Bắc + xã Vĩnh Bình Nam + xã Bình Minh</td></tr>
+                        <tr><td>45</td><td>xã Vĩnh Thuận</td><td>xã Vĩnh Thuận + xã Tân Thuận</td></tr>
+                        <tr><td>46</td><td>xã Vĩnh Phong</td><td>thị trấn Vĩnh Thuận + xã Vĩnh Phong + xã Phong Đông</td></tr>
+                        <tr><td>47</td><td>xã Vĩnh Hòa</td><td>xã Thạnh Yên A + xã Hòa Chánh + xã Vĩnh Hòa + xã Thạnh Yên</td></tr>
+                        <tr><td>48</td><td>xã U Minh Thượng</td><td>xã An Minh Bắc + xã Minh Thuận</td></tr>
+                        <tr><td>49</td><td>xã Đông Hòa</td><td>xã Đông Hòa + xã Đông Thạnh</td></tr>
+                        <tr><td>50</td><td>xã Tân Thạnh</td><td>xã Tân Thạnh + xã Thuận Hòa</td></tr>
+                        <tr><td>51</td><td>xã Đông Hưng</td><td>xã Đông Hưng A + xã Vân Khánh Đông</td></tr>
+                        <tr><td>52</td><td>xã An Minh</td><td>thị trấn Thứ Mười Một + xã Đông Hưng + xã Đông Hưng B</td></tr>
+                        <tr><td>53</td><td>xã Vân Khánh</td><td>xã Vân Khánh + xã Vân Khánh Tây</td></tr>
+                        <tr><td>54</td><td>xã Tây Yên</td><td>xã Tây Yên + xã Tây Yên A + xã Nam Yên</td></tr>
+                        <tr><td>55</td><td>xã Đông Thái</td><td>xã Nam Thái + xã Đông Thái + xã Nam Thái A</td></tr>
+                        <tr><td>56</td><td>xã An Biên</td><td>thị trấn Thứ Ba + xã Đông Yên + xã Hưng Yên</td></tr>
+                        <tr><td>57</td><td>xã Định Hòa</td><td>xã Thới Quản + xã Định Hòa + xã Thủy Liễu</td></tr>
+                        <tr><td>58</td><td>xã Gò Quao</td><td>thị trấn Gò Quao + xã Vĩnh Phước B + xã Định An</td></tr>
+                        <tr><td>59</td><td>xã Vĩnh Hòa Hưng</td><td>xã Vĩnh Hòa Hưng Bắc + xã Vĩnh Hòa Hưng Nam</td></tr>
+                        <tr><td>60</td><td>xã Vĩnh Tuy</td><td>xã Vĩnh Thắng + xã Vĩnh Tuy + xã Vĩnh Phước A</td></tr>
+                        <tr><td>61</td><td>xã Giồng Riềng</td><td>thị trấn Giồng Riềng + xã Bàn Tân Định + xã Thạnh Hòa + xã Bàn Thạch + xã Thạnh Bình</td></tr>
+                        <tr><td>62</td><td>xã Thạnh Hưng</td><td>xã Thạnh Hưng + xã Thạnh Phước + xã Thạnh Lộc</td></tr>
+                        <tr><td>63</td><td>xã Long Thạnh</td><td>xã Long Thạnh + xã Vĩnh Phú + xã Vĩnh Thạnh</td></tr>
+                        <tr><td>64</td><td>xã Hòa Hưng</td><td>xã Hòa Lợi + xã Hòa Hưng + xã Hòa An</td></tr>
+                        <tr><td>65</td><td>xã Ngọc Chúc</td><td>xã Ngọc Chúc + xã Ngọc Thuận + xã Ngọc Thành</td></tr>
+                        <tr><td>67</td><td>xã Tân Hội</td><td>xã Tân Thành + xã Tân Hội + xã Tân Hòa + xã Tân An</td></tr>
+                        <tr><td>68</td><td>xã Tân Hiệp</td><td>thị trấn Tân Hiệp + xã Tân Hiệp B + xã Thạnh Đông B + xã Thạnh Đông</td></tr>
+                        <tr><td>69</td><td>xã Thạnh Đông</td><td>xã Tân Hiệp A + xã Thạnh Đông A + xã Thạnh Trị</td></tr>
+                        <tr><td>70</td><td>xã Thạnh Lộc</td><td>xã Thạnh Lộc + xã Mong Thọ A + xã Mong Thọ + xã Mong Thọ B</td></tr>
+                        <tr><td>71</td><td>xã Châu Thành</td><td>thị trấn Minh Lương + xã Minh Hòa + xã Giục Tượng</td></tr>
+                        <tr><td>72</td><td>xã Bình An</td><td>xã Bình An + xã Vĩnh Hòa Hiệp + xã Vĩnh Hòa Phú</td></tr>
+                        <tr><td>73</td><td>xã Hòn Đất</td><td>thị trấn Hòn Đất + xã Lình Huỳnh + xã Thổ Sơn + xã Nam Thái Sơn</td></tr>
+                        <tr><td>74</td><td>xã Sơn Kiên</td><td>xã Sơn Kiên + xã Sơn Bình + xã Mỹ Thái</td></tr>
+                        <tr><td>76</td><td>xã Hòa Điền</td><td>xã Hòa Điền + xã Kiên Bình</td></tr>
+                        <tr><td>77</td><td>xã Kiên Lương</td><td>thị trấn Kiên Lương + xã Bình An + xã Bình Trị</td></tr>
+                        <tr><td>78</td><td>xã Giang Thành</td><td>xã Tân Khánh Hòa + xã Phú Lợi + xã Phú Mỹ</td></tr>
+                        <tr><td>79</td><td>xã Vĩnh Điều</td><td>xã Vĩnh Điều + xã Vĩnh Phú</td></tr>
+                        <tr><td>80</td><td>phường Long Xuyên</td><td>phường Mỹ Bình + phường Mỹ Long + phưởng Mỹ Xuyên + phường Mỹ Phước + phường Mỹ Quý + phường Mỹ Hòa</td></tr>
+                        <tr><td>81</td><td>phường Bình Đức</td><td>phường Bình Đức + phường Bình Khánh + một phần xã Mỹ Khánh</td></tr>
+                        <tr><td>82</td><td>phường Mỹ Thới</td><td>phường Mỹ Thạnh + phường Mỹ Thới</td></tr>
+                        <tr><td>83</td><td>phường Châu Đốc</td><td>phường Vĩnh Nguơn + phường Châu Phú A + phường Châu Phú B + phường Vĩnh Mỹ và một phần xã Vĩnh Châu</td></tr>
+                        <tr><td>84</td><td>phường Vĩnh Tế</td><td>phường Núi Sam + xã Vĩnh Tế + một phần xã Vĩnh Châu</td></tr>
+                        <tr><td>85</td><td>phường Tân Châu</td><td>phường Long Thạnh + phường Long Sơn</td></tr>
+                        <tr><td>86</td><td>phường Long Phú</td><td>phường Long Hưng + phường Long Châu + phường Long Phú</td></tr>
+                        <tr><td>87</td><td>phường Tịnh Biên</td><td>phường An Phú + phường Tịnh Biên + xã An Nông</td></tr>
+                        <tr><td>88</td><td>phường Thới Sơn</td><td>phường Nhơn Hưng + phường Nhà Bàng + phường Thới Sơn</td></tr>
+                        <tr><td>89</td><td>phường Chi Lăng</td><td>phường Chi Lăng + phường Núi Voi + xã Tân Lợi</td></tr>
+                        <tr><td>90</td><td>phường Vĩnh Thông</td><td>phường Vĩnh Thông + xã Phi Thông + xã Mỹ Lâm</td></tr>
+                        <tr><td>91</td><td>phường Rạch Giá</td><td>phường Vĩnh Quang + phường Vĩnh Thanh + phường Vĩnh Thanh Vân + phường Vĩnh Lạc + phường An Hòa + phường Vĩnh Hiệp + phường An Bình + phường Rạch Sỏi + phường Vĩnh Lợi</td></tr>
+                        <tr><td>92</td><td>phường Hà Tiên</td><td>phường Pháo Đài + phường Bình San + phường Mỹ Đức + phường Đông Hồ</td></tr>
+                        <tr><td>93</td><td>phường Tô Châu</td><td>phường Tô Châu + xã Thuận Yên + xã Dương Hòa</td></tr>
+                        <tr><td>94</td><td>đặc khu Kiên Hải</td><td>xã An Sơn + xã Nam Du + xã Hòn Tre + xã Lại Sơn</td></tr>
+                        <tr><td>95</td><td>đặc khu Phú Quốc</td><td>phường Dương Đông + phường An Thới + xã Dương Tơ + xã Hàm Ninh + xã Cửa Dương + xã Bãi Thơm + xã Gành Dầu + xã Cửa Cạn</td></tr>
+                        <tr><td>96</td><td>đặc khu Thổ Châu</td><td>xã Thổ Châu</td></tr>
+                    </tbody>
+                </table>
+            `,
+            'bac ninh': `
+                <div class="modal-summary">
+                    <p><strong>Tổng số ĐVHC cấp xã:</strong> 99 (gồm 66 xã, 33 phường).</p>
+                    <p><strong>Giữ nguyên không sắp xếp (01 xã):</strong> Tuấn Đạo.</p>
+                </div>
+                <table class="details-table">
+                    <thead>
+                        <tr>
+                            <th style="width:5%">STT</th>
+                            <th>Đơn vị hành chính mới</th>
+                            <th>Sắp xếp từ các ĐVHC cấp xã cũ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1</td><td>xã Chi Lăng</td><td>xã Yên Giả + xã Chi Lăng</td></tr>
+                        <tr><td>2</td><td>xã Phù Lãng</td><td>xã Châu Phong + xã Đức Long + xã Phù Lãng</td></tr>
+                        <tr><td>3</td><td>xã Yên Phong</td><td>thị trấn Chờ + xã Trung Nghĩa + xã Long Châu + xã Đông Tiến</td></tr>
+                        <tr><td>4</td><td>xã Văn Môn</td><td>xã Yên Phụ + xã Đông Thọ + xã Văn Môn</td></tr>
+                        <tr><td>5</td><td>xã Tam Giang</td><td>xã Hòa Tiến + xã Tam Giang</td></tr>
+                        <tr><td>6</td><td>xã Yên Trung</td><td>xã Dũng Liệt + xã Yên Trung</td></tr>
+                        <tr><td>7</td><td>xã Tam Đa</td><td>xã Thụy Hòa + xã Đông Phong + xã Tam Đa</td></tr>
+                        <tr><td>8</td><td>xã Tiên Du</td><td>thị trấn Lim + xã Nội Duệ + xã Phú Lâm</td></tr>
+                        <tr><td>9</td><td>xã Liên Bão</td><td>xã Hiên Vân + xã Việt Đoàn + xã Liên Bão</td></tr>
+                        <tr><td>10</td><td>xã Tân Chi</td><td>xã Lạc Vệ + xã Tân Chi</td></tr>
+                        <tr><td>11</td><td>xã Đại Đồng</td><td>xã Tri Phương + xã Hoàn Sơn + xã Đại Đồng</td></tr>
+                        <tr><td>12</td><td>xã Phật Tích</td><td>xã Minh Đạo + xã Cảnh Hưng + xã Phật Tích</td></tr>
+                        <tr><td>13</td><td>xã Gia Bình</td><td>thị trấn Gia Bình + xã Xuân Lai + xã Quỳnh Phú + xã Đại Bái</td></tr>
+                        <tr><td>14</td><td>xã Nhân Thắng</td><td>thị trấn Nhân Thắng + xã Thái Bảo + xã Bình Dương</td></tr>
+                        <tr><td>15</td><td>xã Đại Lai</td><td>xã Song Giang + xã Đại Lai</td></tr>
+                        <tr><td>16</td><td>xã Cao Đức</td><td>xã Vạn Ninh + xã Cao Đức</td></tr>
+                        <tr><td>17</td><td>xã Đông Cứu</td><td>xã Giang Sơn + xã Lãng Ngâm + xã Đông Cứu</td></tr>
+                        <tr><td>18</td><td>xã Lương Tài</td><td>thị trấn Thứa + xã Phú Hòa + xã Tân Lãng</td></tr>
+                        <tr><td>19</td><td>xã Lâm Thao</td><td>xã Bình Định + xã Quảng Phú + xã Lâm Thao</td></tr>
+                        <tr><td>20</td><td>xã Trung Chính</td><td>xã Phú Lương + xã Quang Minh + xã Trung Chính</td></tr>
+                        <tr><td>21</td><td>xã Trung Kênh</td><td>xã An Thịnh + xã An Tập + xã Trung Kênh</td></tr>
+                        <tr><td>22</td><td>xã Đại Sơn</td><td>xã Giáo Liêm + xã Phúc Sơn + xã Đại Sơn</td></tr>
+                        <tr><td>23</td><td>xã Sơn Động</td><td>thị trấn An Châu + xã An Bá + xã Vĩnh An</td></tr>
+                        <tr><td>24</td><td>xã Tây Yên Tử</td><td>xã Thanh Luận + thị trấn Tây Yên Tử</td></tr>
+                        <tr><td>25</td><td>xã Dương Hưu</td><td>xã Dương Hưu + xã Long Sơn</td></tr>
+                        <tr><td>26</td><td>xã Yên Định</td><td>xã Yên Định + xã Cẩm Đàn</td></tr>
+                        <tr><td>27</td><td>xã An Lạc</td><td>xã An Lạc + xã Lệ Viễn</td></tr>
+                        <tr><td>28</td><td>xã Vân Sơn</td><td>xã Hữu Sản + xã Vân Sơn</td></tr>
+                        <tr><td>29</td><td>xã Biển Động</td><td>thị trấn Biển Động + xã Kim Sơn + xã Phú Nhuận</td></tr>
+                        <tr><td>30</td><td>xã Lục Ngạn</td><td>thị trấn Phì Điền + xã Giáp Sơn + xã Đồng Cốc + xã Tân Hoa + xã Tân Quang</td></tr>
+                        <tr><td>31</td><td>xã Đèo Gia</td><td>xã Đèo Gia + xã Tân Lập</td></tr>
+                        <tr><td>32</td><td>xã Sơn Hải</td><td>xã Sơn Hải + xã Hộ Đáp</td></tr>
+                        <tr><td>33</td><td>xã Tân Sơn</td><td>xã Tân Sơn + xã Cấm Sơn</td></tr>
+                        <tr><td>34</td><td>xã Biên Sơn</td><td>xã Biên Sơn Phong Vân + Trường bắn TB1</td></tr>
+                        <tr><td>35</td><td>xã Sa Lý</td><td>xã Sa Lý + xã Phong Minh</td></tr>
+                        <tr><td>36</td><td>xã Nam Dương</td><td>xã Nam Dương + xã Tân Mộc</td></tr>
+                        <tr><td>37</td><td>xã Kiên Lao</td><td>xã Kiên Lao + xã Kiên Thành</td></tr>
+                        <tr><td>38</td><td>xã Lục Sơn</td><td>xã Lục Sơn + xã Bình Sơn</td></tr>
+                        <tr><td>39</td><td>xã Trường Sơn</td><td>xã Trường Sơn + xã Vô Tranh</td></tr>
+                        <tr><td>40</td><td>xã Cẩm Lý</td><td>xã Cẩm Lý + xã Đan Hội</td></tr>
+                        <tr><td>41</td><td>xã Đông Phú</td><td>xã Đông Phú + xã Đông Hưng</td></tr>
+                        <tr><td>42</td><td>xã Nghĩa Phương</td><td>xã Nghĩa Phương + xã Trường Giang + xã Huyền Sơn</td></tr>
+                        <tr><td>43</td><td>xã Lục Nam</td><td>xã Cương Sơn + xã Tiên Nha + xã Chu Điện + thị trấn Phương Sơn + thị trấn Đồi Ngô</td></tr>
+                        <tr><td>44</td><td>xã Bắc Lũng</td><td>xã Bắc Lũng + xã Yên Sơn + xã Lan Mẫu + xã Khám Lạng</td></tr>
+                        <tr><td>45</td><td>xã Bảo Đài</td><td>xã Bảo Sơn + xã Thanh Lâm + xã Tam Dị + xã Bảo Đài</td></tr>
+                        <tr><td>46</td><td>xã Lạng Giang</td><td>thị trấn Vôi + xã Xương Lâm + xã Hương Lạc + xã Tân Hưng</td></tr>
+                        <tr><td>47</td><td>xã Mỹ Thái</td><td>xã Mỹ Thái + xã Xuân Hương + xã Dương Đức + xã Tân Thanh</td></tr>
+                        <tr><td>48</td><td>xã Kép</td><td>thị trấn Kép + xã Quang Thịnh + xã Hương Sơn</td></tr>
+                        <tr><td>49</td><td>xã Tân Dĩnh</td><td>xã Tân Dĩnh + xã Thái Đào + xã Đại Lâm</td></tr>
+                        <tr><td>50</td><td>xã Tiên Lục</td><td>xã Đào Mỹ + xã Nghĩa Hòa + xã An Hà + xã Nghĩa Hưng + xã Tiên Lục</td></tr>
+                        <tr><td>51</td><td>xã Yên Thế</td><td>thị trấn Phồn Xương + xã Đồng Lạc + xã Đồng Tâm + xã Tân Hiệp + xã Tân Sỏi</td></tr>
+                        <tr><td>52</td><td>xã Bố Hạ</td><td>thị trấn Bố Hạ + xã Đông Sơn + xã Hương Vĩ</td></tr>
+                        <tr><td>53</td><td>xã Đồng Kỳ</td><td>xã Đồng Kỳ + xã Đồng Hưu + xã Đồng Vương</td></tr>
+                        <tr><td>54</td><td>xã Xuân Lương</td><td>xã Canh Nậu + xã Đồng Tiến + xã Xuân Lương</td></tr>
+                        <tr><td>55</td><td>xã Tam Tiến</td><td>xã Tiến Thắng + xã An Thượng + xã Tam Tiến</td></tr>
+                        <tr><td>56</td><td>xã Tân Yên</td><td>thị trấn Cao Thượng + xã Cao Xá + xã Việt Lập + xã Ngọc Lý</td></tr>
+                        <tr><td>57</td><td>xã Ngọc Thiện</td><td>xã Song Vân + xã Ngọc Châu + xã Ngọc Vân + xã Việt Ngọc + xã Ngọc Thiện</td></tr>
+                        <tr><td>58</td><td>xã Nhã Nam</td><td>thị trấn Nhã Nam + xã Tân Trung + xã Liên Sơn + xã An Dương</td></tr>
+                        <tr><td>59</td><td>xã Phúc Hoà</td><td>xã Hợp Đức + xã Liên Chung + xã Phúc Hòa</td></tr>
+                        <tr><td>60</td><td>xã Quang Trung</td><td>xã Quang Trung + xã Lam Sơn</td></tr>
+                        <tr><td>61</td><td>xã Hợp Thịnh</td><td>xã Thường Thắng + xã Mai Trung + xã Hùng Thái + xã Sơn Thịnh + xã Hợp Thịnh</td></tr>
+                        <tr><td>62</td><td>xã Hiệp Hòa</td><td>xã Đông Lỗ + xã Đoan Bái + xã Danh Thắng + xã Lương Phong + thị trấn Thắng</td></tr>
+                        <tr><td>63</td><td>xã Hoàng Vân</td><td>xã Hoàng Vân + xã Đồng Tiến + xã Toàn Thắng + xã Ngọc Sơn</td></tr>
+                        <tr><td>64</td><td>xã Đồng Việt</td><td>xã Đồng Việt + xã Đức Giang + xã Đồng Phúc</td></tr>
+                        <tr><td>65</td><td>xã Xuân Cẩm</td><td>thị trấn Bắc Lý + xã Hương Lâm + xã Mai Đình + xã Châu Minh + xã Xuân Cẩm</td></tr>
+                        <tr><td>66</td><td>phường Kinh Bắc</td><td>phường Suối Hoa + phường Tiền Ninh Vệ + phường Vạn An + phường Hòa Long + phường Khúc Xuyên + phường Kinh Bắc</td></tr>
+                        <tr><td>67</td><td>phường Võ Cường</td><td>phường Đại Phúc + phường Phong Khê + phường Võ Cường</td></tr>
+                        <tr><td>68</td><td>phường Vũ Ninh</td><td>phường Kim Chân + phường Đáp Cầu + phường Thị Cầu + phường Vũ Ninh</td></tr>
+                        <tr><td>69</td><td>phường Hạp Lĩnh</td><td>phường Khắc Niệm + phường Hạp Lĩnh</td></tr>
+                        <tr><td>70</td><td>phường Nam Sơn</td><td>phường Vân Dương + phường Nam Sơn</td></tr>
+                        <tr><td>71</td><td>phường Từ Sơn</td><td>phường Đông Ngàn + phường Tân Hồng + phường Phù Chẩn + phường Đình Bảng</td></tr>
+                        <tr><td>72</td><td>phường Tam Sơn</td><td>phường Tương Giang + phường Tam Sơn</td></tr>
+                        <tr><td>73</td><td>phường Đồng Nguyên</td><td>phường Trang Hạ + phường Đồng Kỵ + phường Đồng Nguyên</td></tr>
+                        <tr><td>74</td><td>phường Phù Khê</td><td>phường Châu Khê + phường Hương Mạc + phường Phù Khê</td></tr>
+                        <tr><td>75</td><td>phường Thuận Thành</td><td>phường Hồ + phường Song Hồ + phường Gia Đông + xã Đại Đồng Thành</td></tr>
+                        <tr><td>76</td><td>phường Mão Điền</td><td>phường An Bình + xã Hoài Thượng + xã Mão Điền</td></tr>
+                        <tr><td>77</td><td>phường Trạm Lộ</td><td>xã Nghĩa Đạo + phường Trạm Lộ</td></tr>
+                        <tr><td>78</td><td>phường Trí Quả</td><td>phường Thanh Khương + phường Trí Quả + xã Đình Tổ</td></tr>
+                        <tr><td>79</td><td>phường Song Liễu</td><td>phường Xuân Lâm + phường Hà Mãn + xã Ngũ Thái + xã Song Liễu</td></tr>
+                        <tr><td>80</td><td>phường Ninh Xá</td><td>xã Nguyệt Đức + phường Ninh Xá</td></tr>
+                        <tr><td>81</td><td>phường Quế Võ</td><td>phường Phố Mới + phường Bằng An + phường Việt Hùng + phường Quế Tân</td></tr>
+                        <tr><td>82</td><td>phường Phương Liễu</td><td>phường Phượng Mao + phường Phương Liễu</td></tr>
+                        <tr><td>83</td><td>phường Nhân Hòa</td><td>phường Đại Xuân + phường Nhân Hòa + xã Việt Thống</td></tr>
+                        <tr><td>84</td><td>phường Đào Viên</td><td>phường Phù Lương + xã Ngọc Xá + xã Đào Viên</td></tr>
+                        <tr><td>85</td><td>phường Bồng Lai</td><td>phường Cách Bi + phường Bồng Lai + xã Mộ Đạo</td></tr>
+                        <tr><td>86</td><td>phường Chũ</td><td>phường Chũ + phường Thanh Hải + phường Hồng Giang + phường Trù</td></tr>
+                        <tr><td>87</td><td>phường Phượng Sơn</td><td>phường Phượng Sơn + xã Quý Sơn + xã Mỹ An</td></tr>
+                        <tr><td>88</td><td>phường Tự Lạn</td><td>phường Tự Lạn + xã Việt Tiến + xã Thượng Lan + xã Hương Mai</td></tr>
+                        <tr><td>89</td><td>phường Việt Yên</td><td>phường Bích Động + phường Hồng Thái + xã Minh Đức + xã Nghĩa Trung</td></tr>
+                        <tr><td>90</td><td>phường Nếnh</td><td>phường Quang Châu + phường Nếnh + phường Vân Trung + phường Tăng Tiến</td></tr>
+                        <tr><td>91</td><td>phường Vân Hà</td><td>xã Vân Hà + xã Tiên Sơn + xã Trung Sơn + phường Ninh Sơn + phường Quảng Minh</td></tr>
+                        <tr><td>92</td><td>phường Bắc Giang</td><td>phường Thọ Xương + phường Ngô Quyền + phường Xương Giang + phường Hoàng Văn Thụ + phường Trần Phú + phường Dĩnh Kế + phường Dĩnh Trì</td></tr>
+                        <tr><td>93</td><td>phường Đa Mai</td><td>phường Tân Mỹ + phường Mỹ Độ + phường Song Mai + phường Đa Mai + xã Quế Nham</td></tr>
+                        <tr><td>94</td><td>phường Tiền Phong</td><td>phường Nội Hoàng + phường Tiền Phong + phường Song Khê + phường Đồng Sơn</td></tr>
+                        <tr><td>95</td><td>phường Tân An</td><td>phường Tân An + xã Quỳnh Sơn + xã Trí Yên + xã Lãng Sơn</td></tr>
+                        <tr><td>96</td><td>phường Yên Dũng</td><td>xã Yên Lư + phường Tân Liễu + phường Nham Biền</td></tr>
+                        <tr><td>97</td><td>phường Tân Tiến</td><td>phường Hương + phường Tân Tiến + xã Xuân Phú</td></tr>
+                        <tr><td>98</td><td>phường Cảnh Thụy</td><td>phường Cảnh Thụy + xã Tiến Dũng + xã Tư Mại</td></tr>
+                    </tbody>
+                </table>
+            `,
+            'ca mau': `
+                <div class="modal-summary">
+                    <p><strong>Tổng số ĐVHC cấp xã:</strong> 64 (gồm 55 xã, 09 phường).</p>
+                    <p><strong>Giữ nguyên không sắp xếp (01 xã):</strong> Hồ Thị Kỷ.</p>
+                </div>
+                <table class="details-table">
+                    <thead>
+                        <tr>
+                            <th style="width:5%">STT</th>
+                            <th>Đơn vị hành chính mới</th>
+                            <th>Sắp xếp từ các ĐVHC cấp xã cũ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1</td><td>xã Tân Thuận</td><td>xã Tân Đức + xã Tân Thuận</td></tr>
+                        <tr><td>2</td><td>xã Tân Tiến</td><td>xã Nguyễn Huân + xã Tân Tiến</td></tr>
+                        <tr><td>3</td><td>xã Tạ An Khương</td><td>xã Tạ An Khương Đông + xã Tạ An Khương Nam + một phần xã Tạ An Khương</td></tr>
+                        <tr><td>4</td><td>xã Trần Phán</td><td>xã Tân Trung + xã Trần Phán</td></tr>
+                        <tr><td>5</td><td>xã Thanh Tùng</td><td>xã Ngọc Chánh + xã Thanh Tùng</td></tr>
+                        <tr><td>6</td><td>xã Đầm Dơi</td><td>thị trấn Đầm Dơi + xã Tân Duyệt + xã Tân Dân + một phần xã Tạ An Khương</td></tr>
+                        <tr><td>7</td><td>xã Quách Phẩm</td><td>xã Quách Phẩm Bắc + xã Quách Phẩm</td></tr>
+                        <tr><td>8</td><td>xã U Minh</td><td>xã Khánh Tiến + xã Khánh Hòa + một phần: xã Khánh Thuận, xã Khánh Lâm</td></tr>
+                        <tr><td>9</td><td>xã Nguyễn Phích</td><td>thị trấn U Minh + một phần: xã Khánh Thuận, xã Nguyễn Phích</td></tr>
+                        <tr><td>10</td><td>xã Khánh Lâm</td><td>xã Khánh Hội + một phần: xã Nguyễn Phích, xã Khánh Lâm</td></tr>
+                        <tr><td>11</td><td>xã Khánh An</td><td>xã Khánh An + một phần xã Nguyễn Phích</td></tr>
+                        <tr><td>12</td><td>xã Phan Ngọc Hiển</td><td>thị trấn Rạch Gốc + xã Viên An Đông + một phần xã Tân Ân</td></tr>
+                        <tr><td>13</td><td>xã Đất Mũi</td><td>xã Đất Mũi + một phần: xã Viên An, xã Tân Ân (bao gồm cụm đảo Hòn Khoai)</td></tr>
+                        <tr><td>14</td><td>xã Tân Ân</td><td>xã Tam Giang Tây + xã Tân Ân Tây</td></tr>
+                        <tr><td>15</td><td>xã Khánh Bình</td><td>xã Khánh Bình Đông + xã Khánh Bình</td></tr>
+                        <tr><td>16</td><td>xã Đá Bạc</td><td>xã Khánh Bình Tây (bao gồm Hòn Đá Bạc) + xã Khánh Bình Tây Bắc + một phần xã Trần Hợi</td></tr>
+                    </tbody>
+                </table>
+            `,
+        };
 
         // Lấy các element từ DOM
         const provinceInput = document.getElementById('provinceInput');
@@ -335,6 +712,13 @@
         const lanhDaoTinhItem = document.getElementById('lanhDaoTinhItem');
         const ghiChuItem = document.getElementById('ghiChuItem');
         const micButton = document.getElementById('micButton');
+        
+        // Lấy các element của Modal
+        const modal = document.getElementById('detailsModal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
+        const closeModalButton = document.getElementById('closeModalButton');
+
 
         let provinceData = [];
 
@@ -352,7 +736,12 @@
             setUIState(true, 'Đang tải dữ liệu từ máy chủ, vui lòng đợi...');
             try {
                 const querySnapshot = await getDocs(collection(db, "provinces"));
-                provinceData = querySnapshot.docs.map(doc => doc.data());
+                provinceData = querySnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    // Thêm một key đã chuẩn hóa để dễ dàng tra cứu chi tiết
+                    data.normalizedKey = normalizeText(data.tenTinh);
+                    return data;
+                });
 
                 console.log("Đã tải thành công dữ liệu từ Firebase. Số lượng:", provinceData.length);
 
@@ -369,7 +758,8 @@
 
         function normalizeText(str) {
             if (!str) return '';
-            return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase().replace(/thanh pho |tp /g, "").trim();
+            // Chuẩn hóa, bỏ dấu, chuyển thành chữ thường và loại bỏ các tiền tố
+            return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase().replace(/tinh |thanh pho |tp /g, "").trim();
         }
 
         function formatMultiLine(text, icon) {
@@ -439,13 +829,18 @@
             htmlResult += '</div>';
             return htmlResult;
         }
-
+        
         function formatThongTinChung(text) {
             if (!text || !text.trim()) return '';
             var lines = text.split('\n');
             var htmlResult = '';
             for (var i = 0; i < lines.length; i++) {
                 var line = lines[i].trim();
+                // Bỏ qua dòng "Xem chi tiết" để nó không hiển thị dưới dạng văn bản thường
+                if (line.toLowerCase().includes('xem chi tiết')) {
+                    continue; 
+                }
+                
                 if (line.startsWith('(') && line.endsWith(')')) {
                     htmlResult += '<strong>' + line + '</strong><br>';
                 } else if (i === 0) {
@@ -456,6 +851,37 @@
             }
             return htmlResult;
         }
+
+        // === CÁC HÀM XỬ LÝ POP-UP (MODAL) ===
+        function openModal(provinceKey, provinceName) {
+            const detailsHTML = provinceDetails[provinceKey] || '<p class="no-info">Hiện chưa có thông tin chi tiết cho tỉnh/thành phố này.</p>';
+            modalTitle.textContent = `Chi tiết ĐVHC - ${provinceName}`;
+            modalBody.innerHTML = detailsHTML;
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        // Gán sự kiện cho nút đóng và nền
+        closeModalButton.onclick = closeModal;
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+        
+        // Sử dụng event delegation để bắt sự kiện click trên link "Xem chi tiết"
+        resultsContainer.addEventListener('click', function(event) {
+            if (event.target.classList.contains('details-link')) {
+                event.preventDefault(); 
+                const provinceKey = event.target.dataset.province;
+                const provinceName = resultTenTinh.textContent;
+                openModal(provinceKey, provinceName);
+            }
+        });
+
 
         function performSearch() {
             try {
@@ -469,9 +895,8 @@
                 var found = null;
                 for (var i = 0; i < provinceData.length; i++) {
                     var province = provinceData[i];
-                    var normalizedTenTinh = normalizeText(province.tenTinh);
                     var normalizedTenThayThe = normalizeText(province.tenThayThe);
-                    if (normalizedTenTinh.indexOf(query) !== -1 || (normalizedTenThayThe && normalizedTenThayThe.indexOf(query) !== -1)) {
+                    if (province.normalizedKey.indexOf(query) !== -1 || (normalizedTenThayThe && normalizedTenThayThe.indexOf(query) !== -1)) {
                         found = province;
                         break;
                     }
@@ -484,7 +909,15 @@
                         tenHienThi = 'Tỉnh ' + tenHienThi;
                     }
                     resultTenTinh.textContent = tenHienThi;
-                    resultThongTinChung.innerHTML = formatThongTinChung(found.thongTinChung);
+                    
+                    // Xử lý mục "Thông tin chung" và thêm link "Xem chi tiết" nếu có
+                    let thongTinChungHTML = formatThongTinChung(found.thongTinChung);
+                    // *** ĐÃ SỬA LỖI: Kiểm tra sự tồn tại của key chi tiết để quyết định có hiển thị link không
+                    if (provinceDetails[found.normalizedKey]) {
+                        thongTinChungHTML += `<br><a href="#" class="details-link" data-province="${found.normalizedKey}">🔗 Xem chi tiết đơn vị hành chính...</a>`;
+                    }
+                    resultThongTinChung.innerHTML = thongTinChungHTML;
+
                     resultTrungTamHC.innerHTML = found.trungTamHanhChinh ? found.trungTamHanhChinh : '<p class="no-info">Chưa có thông tin</p>';
                     resultLanhDaoTinh.innerHTML = formatLanhDaoTinh(found.lanhDaoTinh);
                     resultLanhDaoSo.innerHTML = formatLanhDaoSo(found.lanhDaoSo, found.chucVu);
